@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<beast>
+  <!-- Classes that implement the interface edu.ucr.cs.bdlab.io.FeatureReader
+  which are also annotated with class edu.ucr.cs.bdlab.io.FeatureReader.Metadata -->
+  <Readers>
+    <Reader>edu.ucr.cs.bdlab.star.GeoLifeReader</Reader>
+  </Readers>
+</beast>
