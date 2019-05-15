@@ -28,7 +28,7 @@
     <dependency>
       <groupId>edu.ucr.cs.bdlab</groupId>
       <artifactId>spark-operations</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
+      <version>0.0.1-RC0</version>
     </dependency>
   </dependencies>
 
