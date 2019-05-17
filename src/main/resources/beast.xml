@@ -4,5 +4,6 @@
   which are also annotated with class edu.ucr.cs.bdlab.io.FeatureReader.Metadata -->
   <Readers>
     <Reader>edu.ucr.cs.bdlab.star.GeoLifeReader</Reader>
+    <Reader>edu.ucr.cs.bdlab.star.RoadsReader</Reader>
   </Readers>
 </beast>
