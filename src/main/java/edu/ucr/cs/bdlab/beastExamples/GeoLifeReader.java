@@ -1,9 +1,23 @@
-package edu.ucr.cs.bdlab.star;
+/*
+ * Copyright 2018 University of California, Riverside
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package edu.ucr.cs.bdlab.beastExamples;
 
 import edu.ucr.cs.bdlab.geolite.Envelope;
 import edu.ucr.cs.bdlab.geolite.IFeature;
 import edu.ucr.cs.bdlab.geolite.Point;
-import edu.ucr.cs.bdlab.geolite.twod.LineString2D;
 import edu.ucr.cs.bdlab.io.CSVFeature;
 import edu.ucr.cs.bdlab.io.CSVFeatureReader;
 import edu.ucr.cs.bdlab.io.FeatureReader;
@@ -17,17 +31,16 @@ import org.apache.hadoop.mapreduce.lib.input.LineRecordReader;
 import java.io.IOException;
 
 /**
- * Reads the road network dataset provided by SpatialHadoop on the following link
- * https://drive.google.com/file/d/0B1jY75xGiy7ecDEtR1V1X21QVkE
- *
+ * Reads GeoLife .mplot files as a sequence of points. Similar to the CSVFeatureReader but it skips the first six
+ * lines per the GeoLife format.
  */
 @FeatureReader.Metadata(
-    description = "Parses a CSV file that contains line segments",
-    shortName = "roadnetwork",
-    extension = ".csv"
+    description = "Parses GeoLife .mplot files",
+    shortName = "geolife",
+    extension = ".plt"
 )
-public class RoadsReader extends FeatureReader {
-  private static final Log LOG = LogFactory.getLog(RoadsReader.class);
+public class GeoLifeReader extends FeatureReader {
+  private static final Log LOG = LogFactory.getLog(GeoLifeReader.class);
 
   /**An underlying reader for the text file*/
   protected final LineRecordReader lineReader = new LineRecordReader();
@@ -38,25 +51,32 @@ public class RoadsReader extends FeatureReader {
   /**The MBR of the current feature*/
   protected Envelope featureMBR = new Envelope(2);
 
+  /**A flag that is raised after the first six lines in the header are skipped*/
+  protected boolean headerSkipped;
+
   @Override
   public void initialize(InputSplit split, TaskAttemptContext context) throws IOException {
     lineReader.initialize(split, context);
+    headerSkipped = false;
   }
 
   @Override
   public boolean nextKeyValue() throws IOException {
+    if (!headerSkipped) {
+      // Skip the first six lines
+      for (int $i = 0; $i < 6; $i++) {
+        if (!lineReader.nextKeyValue())
+          return false;
+      }
+      headerSkipped = true;
+    }
     if (!lineReader.nextKeyValue())
       return false;
     Text value = lineReader.getCurrentValue();
     try {
-      double x1 = Double.parseDouble(CSVFeatureReader.deleteAttribute(value, ',', 2));
-      double y1 = Double.parseDouble(CSVFeatureReader.deleteAttribute(value, ',', 2));
-      double x2 = Double.parseDouble(CSVFeatureReader.deleteAttribute(value, ',', 3));
-      double y2 = Double.parseDouble(CSVFeatureReader.deleteAttribute(value, ',', 3));
-      LineString2D lineString = new LineString2D();
-      lineString.addPoint(x1, y1);
-      lineString.addPoint(x2, y2);
-      feature = new CSVFeature(lineString);
+      double longitude = Double.parseDouble(CSVFeatureReader.deleteAttribute(value, ',', 1));
+      double latitude = Double.parseDouble(CSVFeatureReader.deleteAttribute(value, ',', 0));
+      feature = new CSVFeature(new Point(longitude, latitude));
       feature.setFieldSeparator((byte) ',');
       feature.setFieldValues(value.toString());
       feature.getGeometry().envelope(featureMBR);
