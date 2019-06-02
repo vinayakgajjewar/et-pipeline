@@ -24,6 +24,7 @@ import edu.ucr.cs.bdlab.operations.SpatialJoin;
 import edu.ucr.cs.bdlab.operations.SpatialReader;
 import edu.ucr.cs.bdlab.operations.SpatialWriter;
 import edu.ucr.cs.bdlab.util.OperationMetadata;
+import edu.ucr.cs.bdlab.util.OperationParam;
 import edu.ucr.cs.bdlab.util.UserOptions;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
@@ -40,8 +41,13 @@ import java.io.IOException;
     description = "Computes the point-in-polygon query between two inputs.",
     inputArity = "2",
     outputArity = "1",
-    inheritParams = {SpatialInputFormat.class, SpatialOutputFormat.class})
+    inheritParams = {SpatialInputFormat.class})
 public class PointInPolygon {
+  @OperationParam(
+      description = "Overwrite the output if it already exists {true, false}.",
+      defaultValue = "false"
+  )
+  public static final String OverwriteOutput = "overwrite";
 
   public static void run(UserOptions opts, JavaSparkContext sc) throws IOException {
     // Read the input features for the two datasets
@@ -66,9 +72,8 @@ public class PointInPolygon {
     // Write to the output
     int numPolygonAttributes = polygons.first().getNumAttributes();
     // The output format is CSV where the point is encoded as WKT right between polygon and point attributes
-    String oFormat = opts.get(SpatialOutputFormat.OutputFormat, String.format("wkt(%d)", numPolygonAttributes));
-    if (opts.get(CSVFeatureWriter.FieldSeparator) == null)
-      opts.set(CSVFeatureWriter.FieldSeparator, ";");
+    String oFormat = String.format("wkt(%d)", numPolygonAttributes);
+    opts.set(CSVFeatureWriter.FieldSeparator, ";");
     SpatialWriter.saveFeatures(results, oFormat, opts.getOutput(), opts);
   }
 }

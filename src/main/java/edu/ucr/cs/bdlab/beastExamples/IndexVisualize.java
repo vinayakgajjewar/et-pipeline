@@ -15,12 +15,15 @@
  */
 package edu.ucr.cs.bdlab.beastExamples;
 
+import com.esri.core.geometry.Geometry;
 import edu.ucr.cs.bdlab.davinci.GeometricPlotter;
 import edu.ucr.cs.bdlab.davinci.MultilevelPyramidPlotHelper;
 import edu.ucr.cs.bdlab.davinci.Plotter;
 import edu.ucr.cs.bdlab.geolite.Envelope;
 import edu.ucr.cs.bdlab.geolite.Feature;
 import edu.ucr.cs.bdlab.geolite.IFeature;
+import edu.ucr.cs.bdlab.geolite.IGeometry;
+import edu.ucr.cs.bdlab.geolite.Point;
 import edu.ucr.cs.bdlab.indexing.IndexerParams;
 import edu.ucr.cs.bdlab.indexing.RSGrovePartitioner;
 import edu.ucr.cs.bdlab.indexing.RTreeFeatureReader;
@@ -86,7 +89,25 @@ public class IndexVisualize {
 
     // Read the features in the input dataset
     JavaRDD<IFeature> input = SpatialReader.readInput(opts, opts.getInput(), sc);
-    input = input.map(f -> new Feature(f.getGeometry()));
+    input = input.map(f -> {
+      IGeometry geom = f.getGeometry();
+      if (geom.getCoordinateDimension() > 2) {
+        // Reduce geometry coordinates to two dimensions
+        switch (geom.getType()) {
+          case POINT:
+            Point point = (Point) geom;
+            geom = new Point(point.coords[0], point.coords[1]);
+            break;
+          case ENVELOPE:
+            Envelope envelope = (Envelope) geom;
+            geom = new Envelope(2, envelope.minCoord[0], envelope.minCoord[1], envelope.maxCoord[0], envelope.maxCoord[1]);
+            break;
+          default:
+            throw new RuntimeException(String.format("Cannot reduce the dimensions of geometries of type '%s'", geom.getType()));
+        }
+      }
+      return new Feature(geom);
+    });
 
     // Index the file using R*-Grove as a global index and R-tree as a local index
     JavaPairRDD<Integer, IFeature> partitionedInput = Index.partitionFeatures(input, RSGrovePartitioner.class, opts);
