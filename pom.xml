@@ -6,7 +6,7 @@
 
   <groupId>edu.ucr.cs.bdlab</groupId>
   <artifactId>beast-examples</artifactId>
-  <version>1.0-SNAPSHOT</version>
+  <version>0.1.0-RC3</version>
 
   <name>star</name>
   <!-- FIXME change it to the project's website -->
@@ -28,7 +28,7 @@
     <dependency>
       <groupId>edu.ucr.cs.bdlab</groupId>
       <artifactId>spark-operations</artifactId>
-      <version>0.1.0-RC3-SNAPSHOT</version>
+      <version>0.1.0-RC3</version>
     </dependency>
   </dependencies>
 
