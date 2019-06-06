@@ -26,6 +26,8 @@ import edu.ucr.cs.bdlab.operations.SpatialWriter;
 import edu.ucr.cs.bdlab.util.OperationMetadata;
 import edu.ucr.cs.bdlab.util.OperationParam;
 import edu.ucr.cs.bdlab.util.UserOptions;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
@@ -74,6 +76,12 @@ public class PointInPolygon {
     // The output format is CSV where the point is encoded as WKT right between polygon and point attributes
     String oFormat = String.format("wkt(%d)", numPolygonAttributes);
     opts.set(CSVFeatureWriter.FieldSeparator, ";");
+    if (opts.getBoolean(OverwriteOutput, false)) {
+      Path outPath = new Path(opts.getOutput());
+      FileSystem fileSystem = outPath.getFileSystem(opts);
+      if (fileSystem.exists(outPath))
+        fileSystem.delete(outPath, true);
+    }
     SpatialWriter.saveFeatures(results, oFormat, opts.getOutput(), opts);
   }
 }
