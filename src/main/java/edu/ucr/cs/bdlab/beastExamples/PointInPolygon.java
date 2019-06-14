@@ -19,10 +19,9 @@ import edu.ucr.cs.bdlab.geolite.Feature;
 import edu.ucr.cs.bdlab.geolite.IFeature;
 import edu.ucr.cs.bdlab.io.CSVFeatureWriter;
 import edu.ucr.cs.bdlab.io.SpatialInputFormat;
-import edu.ucr.cs.bdlab.io.SpatialOutputFormat;
-import edu.ucr.cs.bdlab.operations.SpatialJoin;
-import edu.ucr.cs.bdlab.operations.SpatialReader;
-import edu.ucr.cs.bdlab.operations.SpatialWriter;
+import edu.ucr.cs.bdlab.sparkOperations.SpatialJoin;
+import edu.ucr.cs.bdlab.sparkOperations.SpatialReader;
+import edu.ucr.cs.bdlab.sparkOperations.SpatialWriter;
 import edu.ucr.cs.bdlab.util.OperationMetadata;
 import edu.ucr.cs.bdlab.util.OperationParam;
 import edu.ucr.cs.bdlab.util.UserOptions;
@@ -53,11 +52,11 @@ public class PointInPolygon {
 
   public static void run(UserOptions opts, JavaSparkContext sc) throws IOException {
     // Read the input features for the two datasets
-    JavaRDD<IFeature> polygons = SpatialReader.readInput(opts, opts.getInputs()[0], 0, sc);
-    JavaRDD<IFeature> points = SpatialReader.readInput(opts, opts.getInputs()[1], 1, sc);
+    JavaRDD<IFeature> polygons = SpatialReader.readInput(sc, opts, 0);
+    JavaRDD<IFeature> points = SpatialReader.readInput(sc, opts, 1);
 
     // Compute the spatial join
-    JavaPairRDD<IFeature, IFeature> joinsResults = SpatialJoin.spatialJoinBNLJ(polygons, points, SpatialJoin.JoinPredicate.CONTAINS);
+    JavaPairRDD<IFeature, IFeature> joinsResults = SpatialJoin.spatialJoinBNLJ(polygons, points, "contains");
 
     // Combine the results into features while removing the polygon geometry and keeping only its attributes
     JavaRDD<Feature> results = joinsResults.map(pair -> {

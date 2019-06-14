@@ -6,11 +6,10 @@
 
   <groupId>edu.ucr.cs.bdlab</groupId>
   <artifactId>beast-examples</artifactId>
-  <version>0.1.0-RC4-SNAPSHOT</version>
+  <version>0.2.0-RC1-SNAPSHOT</version>
 
-  <name>star</name>
-  <!-- FIXME change it to the project's website -->
-  <url>http://www.example.com</url>
+  <name>beast-examples</name>
+  <url>https://bitbucket.org/eldawy/beast-examples</url>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -27,8 +26,8 @@
     </dependency>
     <dependency>
       <groupId>edu.ucr.cs.bdlab</groupId>
-      <artifactId>spark-operations</artifactId>
-      <version>0.1.0-RC4-SNAPSHOT</version>
+      <artifactId>beast-spark</artifactId>
+      <version>0.2.0-RC1-SNAPSHOT</version>
     </dependency>
   </dependencies>
 
@@ -44,15 +43,14 @@
               <exclude>org.apache.spark:spark-core_2.11</exclude>
             </excludes>
             <includes>
+              <include>edu.ucr.cs.bdlab:beast-spark</include>
               <include>edu.ucr.cs.bdlab:common</include>
               <include>edu.ucr.cs.bdlab:geolite</include>
               <include>edu.ucr.cs.bdlab:cg</include>
-              <include>edu.ucr.cs.bdlab:spark-operations</include>
               <include>edu.ucr.cs.bdlab:synopses</include>
               <include>edu.ucr.cs.bdlab:indexing</include>
               <include>edu.ucr.cs.bdlab:visualization</include>
               <include>edu.ucr.cs.bdlab:io</include>
-              <include>edu.ucr.cs.bdlab:spark-operations</include>
               <include>com.esri.geometry:esri-geometry-api</include>
             </includes>
           </artifactSet>
@@ -70,7 +68,7 @@
           <outputDirectory>target/</outputDirectory>
           <transformers>
             <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-              <mainClass>edu.ucr.cs.bdlab.operations.Main</mainClass>
+              <mainClass>edu.ucr.cs.bdlab.sparkOperations.Main</mainClass>
             </transformer>
             <!-- Merge configuration files from all modules -->
             <transformer implementation="org.apache.maven.plugins.shade.resource.XmlAppendingTransformer">
