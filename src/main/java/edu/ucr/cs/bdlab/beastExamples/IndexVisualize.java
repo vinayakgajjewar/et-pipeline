@@ -15,6 +15,9 @@
  */
 package edu.ucr.cs.bdlab.beastExamples;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import edu.ucr.cs.bdlab.davinci.GeometricPlotter;
 import edu.ucr.cs.bdlab.davinci.MultilevelPyramidPlotHelper;
 import edu.ucr.cs.bdlab.geolite.Envelope;
@@ -30,10 +33,12 @@ import edu.ucr.cs.bdlab.io.FeatureReader;
 import edu.ucr.cs.bdlab.io.FeatureWriter;
 import edu.ucr.cs.bdlab.io.SpatialInputFormat;
 import edu.ucr.cs.bdlab.io.SpatialOutputFormat;
+import edu.ucr.cs.bdlab.sparkOperations.GeometricSummary;
 import edu.ucr.cs.bdlab.sparkOperations.Index;
 import edu.ucr.cs.bdlab.sparkOperations.JCLIOperation;
 import edu.ucr.cs.bdlab.sparkOperations.MultilevelPlot;
 import edu.ucr.cs.bdlab.sparkOperations.SpatialReader;
+import edu.ucr.cs.bdlab.stsynopses.Summary;
 import edu.ucr.cs.bdlab.util.OperationMetadata;
 import edu.ucr.cs.bdlab.util.OperationParam;
 import edu.ucr.cs.bdlab.util.UserOptions;
@@ -80,8 +85,16 @@ public class IndexVisualize implements JCLIOperation {
       fileSystem.delete(path, true);
     }
 
-    // Read the features in the input dataset and reduce the dimensions to two
-    JavaRDD<IFeature> input = SpatialReader.readInput(sc, opts);
+    // Read the features in the input dataset
+    JavaRDD<IFeature> input = SpatialReader.readInput(sc, opts).cache();
+    // Write the summary
+    Summary summary = GeometricSummary.computeForFeaturesJ(input);
+    JsonGenerator jsonGenerator = new JsonFactory().createGenerator(System.out);
+    jsonGenerator.setPrettyPrinter(new DefaultPrettyPrinter());
+    GeometricSummary.writeDatasetSchema(jsonGenerator, summary, input.first());
+    jsonGenerator.close();
+
+    // Reduce geometries to two dimensions to allow geometric plotter to work
     input = input.map(f -> {
       IGeometry geom = f.getGeometry();
       if (geom.getCoordinateDimension() > 2) {
