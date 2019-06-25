@@ -80,7 +80,7 @@ public class IndexVisualize implements JCLIOperation {
       fileSystem.delete(path, true);
     }
 
-    // Read the features in the input dataset
+    // Read the features in the input dataset and reduce the dimensions to two
     JavaRDD<IFeature> input = SpatialReader.readInput(sc, opts);
     input = input.map(f -> {
       IGeometry geom = f.getGeometry();
@@ -104,6 +104,7 @@ public class IndexVisualize implements JCLIOperation {
 
     // Index the file using R*-Grove as a global index and R-tree as a local index
     opts.setBoolean(IndexerParams.BalancedPartitioning, true);
+    opts.setBoolean(IndexerParams.DisjointIndex, true);
     opts.set(SpatialOutputFormat.OutputFormat, "rtree");
     JavaPairRDD<Integer, IFeature> partitionedInput = Index.partitionFeatures(input, RSGrovePartitioner.class, opts);
     opts.setClass(SpatialOutputFormat.FeatureWriterClass, RTreeFeatureWriter.class, FeatureWriter.class);

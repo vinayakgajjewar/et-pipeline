@@ -26,3 +26,9 @@ Input file formats
 You can also add a new input file format by creating a class that implements the interface
 `FeatureReader`. To access the new input format from command line, you need to add the full class name
 to the file `resources/beast.xml`.
+
+Plotters
+--------
+To add a new plotter, create a new class that extends the `Plotter` interface and annotate it with
+the `Plotter.Metadata` annotation. To make it accessible from command line, you must add the full
+class name to `resources/beast.xml` under section &lt;Plotters&gt;.
