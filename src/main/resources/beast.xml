@@ -12,4 +12,9 @@
     <Operation>edu.ucr.cs.bdlab.beastExamples.PointInPolygon</Operation>
     <Operation>edu.ucr.cs.bdlab.beastExamples.IndexVisualize</Operation>
   </Operations>
+
+  <Plotters>
+    <Plotter>edu.ucr.cs.bdlab.beastExamples.ClusterPlotter</Plotter>
+  </Plotters>
+
 </beast>

@@ -1,5 +1,6 @@
 package edu.ucr.cs.bdlab.beastExamples;
 
+import edu.ucr.cs.bdlab.davinci.Canvas;
 import edu.ucr.cs.bdlab.geolite.Envelope;
 
 import java.awt.Point;
@@ -96,4 +97,13 @@ public class ClusterCanvas extends Canvas {
       clusters.put(p, c);
     }
   }
+
+  public int getWidth() {
+    return width;
+  }
+
+  public int getHeight() {
+    return height;
+  }
+
 }
