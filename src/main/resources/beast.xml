@@ -14,7 +14,7 @@
   </Operations>
 
   <Plotters>
-    <Plotter>edu.ucr.cs.bdlab.beastExamples.ClusterPlotter</Plotter>
+    <Plotter>edu.ucr.cs.bdlab.beastExamples.NewPlotter</Plotter>
   </Plotters>
 
 </beast>
