@@ -74,8 +74,10 @@ public class GeoLifeReader extends FeatureReader {
       return false;
     Text value = lineReader.getCurrentValue();
     try {
-      double longitude = Double.parseDouble(CSVFeatureReader.deleteAttribute(value, ',', 1));
-      double latitude = Double.parseDouble(CSVFeatureReader.deleteAttribute(value, ',', 0));
+      double longitude = Double.parseDouble(CSVFeature.deleteAttribute(value, ',', 1,
+          CSVFeatureReader.DefaultQuoteCharacters));
+      double latitude = Double.parseDouble(CSVFeature.deleteAttribute(value, ',', 0,
+          CSVFeatureReader.DefaultQuoteCharacters));
       feature = new CSVFeature(new Point(longitude, latitude));
       feature.setFieldSeparator((byte) ',');
       feature.setFieldValues(value.toString());

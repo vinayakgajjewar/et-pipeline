@@ -21,6 +21,7 @@ import edu.ucr.cs.bdlab.geolite.Point;
 import edu.ucr.cs.bdlab.geolite.twod.LineString2D;
 import edu.ucr.cs.bdlab.io.CSVFeature;
 import edu.ucr.cs.bdlab.io.CSVFeatureReader;
+import edu.ucr.cs.bdlab.io.CSVFeatureWriter;
 import edu.ucr.cs.bdlab.io.FeatureReader;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -64,10 +65,10 @@ public class RoadsReader extends FeatureReader {
       return false;
     Text value = lineReader.getCurrentValue();
     try {
-      double x1 = Double.parseDouble(CSVFeatureReader.deleteAttribute(value, ',', 2));
-      double y1 = Double.parseDouble(CSVFeatureReader.deleteAttribute(value, ',', 2));
-      double x2 = Double.parseDouble(CSVFeatureReader.deleteAttribute(value, ',', 3));
-      double y2 = Double.parseDouble(CSVFeatureReader.deleteAttribute(value, ',', 3));
+      double x1 = Double.parseDouble(CSVFeature.deleteAttribute(value, ',', 2, CSVFeatureReader.DefaultQuoteCharacters));
+      double y1 = Double.parseDouble(CSVFeature.deleteAttribute(value, ',', 2, CSVFeatureReader.DefaultQuoteCharacters));
+      double x2 = Double.parseDouble(CSVFeature.deleteAttribute(value, ',', 3, CSVFeatureReader.DefaultQuoteCharacters));
+      double y2 = Double.parseDouble(CSVFeature.deleteAttribute(value, ',', 3, CSVFeatureReader.DefaultQuoteCharacters));
       LineString2D lineString = new LineString2D();
       lineString.addPoint(x1, y1);
       lineString.addPoint(x2, y2);
