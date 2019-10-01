@@ -14,9 +14,13 @@ In order to use Beast, you need the following prerequistes installed on your mac
 
 ## Create a project
 
-The easiest way to start is to clone the beast-examples project from BitBucket.
+The easiest way to start is to clone the beast-examples project from BitBucket and
+you might also want to base it on a stable verison of the code.
 
     git clone https://bitbucket.org/eldawy/beast-examples.git
+    cd beast-examples
+    git checkout -b mybranch 0.2.0
+    
 
 Instead, if you really want a fresh project, then you can initialize a project using Maven:
 
