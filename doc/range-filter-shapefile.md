@@ -56,7 +56,9 @@ e.g., contains.
 
 ## Complete example
 
-Below is the complete example that you can run.
+Below is the
+[complete code](https://bitbucket.org/eldawy/beast-examples/src/master/src/main/java/edu/ucr/cs/bdlab/beastExamples/FilterFeatures.java)
+that you can run.
 
      package edu.ucr.cs.bdlab.beastExamples;
      
