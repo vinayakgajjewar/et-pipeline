@@ -14,30 +14,25 @@ In order to use Beast, you need the following prerequistes installed on your mac
 
 ## Create a project
 
-The easiest way to start is to clone the beast-examples project from BitBucket and
-you might also want to base it on a stable verison of the code.
+If you have an existing Maven-based project, then you can integrate it with Beast by
+adding the following dependency to your `pom.xml` file.
+
+    <!-- https://mvnrepository.com/artifact/edu.ucr.cs.bdlab/beast -->
+    <dependency>
+      <groupId>edu.ucr.cs.bdlab</groupId>
+      <artifactId>beast-spark</artifactId>
+      <version>0.2.0</version>
+    </dependency>
+
+Instead, you can [first create a new Maven project](https://maven.apache.org/guides/getting-started/index.html#How_do_I_make_my_first_Maven_project)
+before adding the Beast dependency.
+
+Another option is to clone the beast-examples project from BitBucket and
+you might also want to base it on a stable version of the code.
 
     git clone https://bitbucket.org/eldawy/beast-examples.git
     cd beast-examples
     git checkout -b mybranch 0.2.0
-    
-
-Instead, if you really want a fresh project, then you can initialize a project using Maven:
-
-    mvn -B archetype:generate \
-     -DarchetypeGroupId=org.apache.maven.archetypes \
-     -DgroupId=com.mycompany.app \
-     -DartifactId=my-app
-
-Then, edit `pom.xml` and add dependency on Beast.
-
-    <!-- https://mvnrepository.com/artifact/edu.ucr.cs.bdlab/beast -->
-    <dependency>
-        <groupId>edu.ucr.cs.bdlab</groupId>
-        <artifactId>beast</artifactId>
-        <version>0.2.0</version>
-        <type>pom</type>
-    </dependency>
 
 ## Write your code
 
