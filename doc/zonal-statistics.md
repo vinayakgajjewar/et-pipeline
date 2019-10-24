@@ -20,17 +20,17 @@ For example, it computes the average temperature for each state.
 
 ## States dataset
 
-   <!-- CSS and JS files need to be added once to the head element of your page. Check if you have them already -->
-   <link rel='stylesheet' href='https://openlayers.org/en/v5.3.0/css/ol.css' type='text/css'>
-   <script language='javascript' src='https://code.jquery.com/jquery-3.3.1.min.js'></script>
-   <script src='https://cdn.rawgit.com/openlayers/openlayers.github.io/master/en/v5.3.0/build/ol.js'></script>
-   <script src='https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList,URL'></script>
-   <script language='javascript' src='https://davinci.cs.ucr.edu/static/davinci.js'></script>
-   <!-- The following code displays the desired map initialized to a customized location -->
-   <!-- Apply any desired CSS customization to the top div element -->
-   <div class='davinci map' data-center='39.9307,-95.7615' data-zoom='4'>
-    <a class='davinci layer' data-url='TIGER2018/STATE_plot'></a>
-   </div>
+<!-- CSS and JS files need to be added once to the head element of your page. Check if you have them already -->
+<link rel='stylesheet' href='https://openlayers.org/en/v5.3.0/css/ol.css' type='text/css'>
+<script language='javascript' src='https://code.jquery.com/jquery-3.3.1.min.js'></script>
+<script src='https://cdn.rawgit.com/openlayers/openlayers.github.io/master/en/v5.3.0/build/ol.js'></script>
+<script src='https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList,URL'></script>
+<script language='javascript' src='https://davinci.cs.ucr.edu/static/davinci.js'></script>
+<!-- The following code displays the desired map initialized to a customized location -->
+<!-- Apply any desired CSS customization to the top div element -->
+<div class='davinci map' data-center='39.9307,-95.7615' data-zoom='4'>
+<a class='davinci layer' data-url='TIGER2018/STATE_plot'></a>
+</div>
   
 
 ## Steps
