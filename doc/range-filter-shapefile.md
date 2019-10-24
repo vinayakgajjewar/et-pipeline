@@ -9,12 +9,14 @@ on a rectangular range.
 * [Download](https://www.naturalearthdata.com/http//www.naturalearthdata.com/download/10m/cultural/ne_10m_airports.zip) a sample Shapefile for testing.
 [more](https://star.cs.ucr.edu/#NE%2Fairports&center=31.41,2.03&zoom=2)
 
-## Create a default SparkContext
+## Steps
+
+### 1. Create a default SparkContext
 
     JavaSparkContext sc = new JavaSparkContext("local[*]", "test");
     UserOptions opts = new UserOptions();
 
-## Load features from a Shapefile
+### 2. Load features from a Shapefile
 
 To load the features from the Shapefile as an RDD, you should use the `SpatialReader` as shown below.
 
@@ -24,11 +26,11 @@ Count number of features in the file
 
     System.out.printf("Total number of airports is %d\n", airports.count());
 
-## Filter by range
+### 3. Filter by range
 
 There are two ways to filter the features from the input, either while the file is being loaded, or after the file is loaded.
 
-### Filter as the file is loaded
+#### 3a. Filter as the file is loaded
 
 This method is usually more efficient as the filtered features (records) are never loaded from disk.
 
@@ -41,7 +43,7 @@ After that, you load the file using the regular method but pass the updated user
     JavaRDD<IFeature> filtered_airports = SpatialReader.readInput(sc, opts, "ne_10m_airports.zip", "shapefile");
     System.out.printf("Number of loaded airports is %d\n", filtered_airports.count());
     
-### Filter after the records are loaded
+#### 3b. Filter after the records are loaded
 
 Another method is to first load all the records and then filter them using the RDD filter method as follows.
 
@@ -72,15 +74,19 @@ that you can run.
      
      public class FilterFeatures {
        public static void main(String[] args) {
+         // 1. Create a default SparkContext
          try (JavaSparkContext sc = new JavaSparkContext("local[*]", "test")) {
            UserOptions opts = new UserOptions();
+           // 2. Load features from a Shapefile
            JavaRDD<IFeature> airports = SpatialReader.readInput(sc, opts, "ne_10m_airports.zip", "shapefile");
            System.out.printf("Total number of airports is %d\n", airports.count());
      
+           // 3a. Filter as the file is loaded
            opts.set(SpatialInputFormat.FilterMBR, "-128.1,27.3,-63.8,54.3");
            JavaRDD<IFeature> filtered_airports = SpatialReader.readInput(sc, opts, "ne_10m_airports.zip", "shapefile");
            System.out.printf("Number of loaded airports is %d\n", filtered_airports.count());
      
+           // 3b. Filter after the records are loaded
            Envelope range = new Envelope(2, -128.1, 27.3, -63.8, 54.3);
            JavaRDD<IFeature> filtered_airports2 = airports.filter(f -> range.contains(f.getGeometry()));
            System.out.printf("Number of filtered airports is %d\n", filtered_airports2.count());
