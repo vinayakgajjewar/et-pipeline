@@ -15,6 +15,7 @@
  */
 package edu.ucr.cs.bdlab.beastExamples;
 
+import edu.ucr.cs.bdlab.geolite.Envelope;
 import edu.ucr.cs.bdlab.geolite.IFeature;
 import edu.ucr.cs.bdlab.geolite.IGeometry;
 import edu.ucr.cs.bdlab.raptor.Collector;
@@ -29,6 +30,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 
+import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -49,7 +51,14 @@ public class ZonalStatisticsExample {
     JavaRDD<IFeature> polygons = SpatialReader.readInput(sc, opts, "tl_2018_us_state.zip", "shapefile");
     List<IFeature> features = polygons.collect();
 
-    // 3. Locate all dates for the raster data
+    // 3. Reproject to Sinusoidal space
+    Envelope mbr = new Envelope(2);
+    for (IFeature f : features) {
+      HDF4Reader.wgsToSinusoidal(f.getGeometry());
+      mbr.merge(f.getGeometry());
+    }
+
+    // 4. Locate all dates for the raster data
     String startDate = "2018.01.01";
     String endDate = "2018.01.03";
     Path rasterPath = new Path("raster");
@@ -57,7 +66,7 @@ public class ZonalStatisticsExample {
     FileStatus[] matchingDates = rFileSystem.listStatus
         (rasterPath, HDF4Reader.createDateFilter(startDate, endDate));
 
-    // 4. Select all files under the matching dates
+    // 5. Select all files under the matching dates
     List<Path> allRasterFiles = new ArrayList<>();
     for (FileStatus matchingDir : matchingDates) {
       FileStatus[] matchingTiles = rFileSystem.listStatus(matchingDir.getPath());
@@ -65,7 +74,7 @@ public class ZonalStatisticsExample {
         allRasterFiles.add(p.getPath());
     }
 
-    // 5. Initialize the list of geometries and results array
+    // 7. Initialize the list of geometries and results array
     IGeometry[] geometries = new IGeometry[features.size()];
     Statistics[] finalResults = new Statistics[features.size()];
     for (int i = 0; i < features.size(); i++) {
@@ -74,7 +83,7 @@ public class ZonalStatisticsExample {
       finalResults[i].setNumBands(1);
     }
 
-    // 6. Run the zonal statistics operation
+    // 7. Run the zonal statistics operation
     HDF4Reader raster = new HDF4Reader();
     for (Path rasterFile : allRasterFiles) {
       raster.initialize(rFileSystem, rasterFile, "LST_Day_1km");
@@ -87,7 +96,7 @@ public class ZonalStatisticsExample {
       raster.close();
     }
 
-    // 7. Print out the results
+    // 8. Print out the results
     System.out.println("Average Temperature (Kelvin)\tState Name");
     for (int i = 0; i < geometries.length; i++) {
       if (finalResults[i].count[0] > 0) {
