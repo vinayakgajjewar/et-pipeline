@@ -14,7 +14,7 @@ This tutorial describes how to visualize data using DaVinci visualization and ac
 
     curl https://www.apache.org/dyn/closer.lua/spark/spark-2.4.4/spark-2.4.4-bin-hadoop2.7.tgz | tar -xz
     
-* Make the `beast` command ready on your machine
+* Make the `beast` command ready on your machine [More](beast-cmd.md). The easiest method is to run the following command.
 
 
     alias beast="spark-submit --packages edu.ucr.cs.bdlab:beast-spark:0.2.0 --class edu.ucr.cs.bdlab.sparkOperations.Main ."
@@ -113,10 +113,10 @@ beast mplot tl_2018_us_zcta510_index iformat:rtree \
 beast server
 ```
 
-5). Explore the visualized data
+5) Explore the visualized data
 In the browser, navigate to `http://localhost:8890/dynamic/visualize.cgi/tl_2018_us_zcta510_plot/`
 
-6). Download part of the data in GeoJSON format
+6) Download part of the data in GeoJSON format
 Navigate to `http://localhost:8890/dynamic/download.cgi/tl_2018_us_zcta510_plot.geojson?mbr=-117.515,33.85,-117.13,34.10`
     
 ## Common Issues
@@ -133,11 +133,3 @@ This usually happens if you run the same command twice before cleaning up the ou
 * The visualization shows the map but not the data.
 
 This might happen if you forget to add the trailing slash `/` at the end of the URL. It is a silly mistake that we did not fix yet :)
-
-* I see the following error when I run the `beast` command, is this normal?
-
-
-    1610 [main] ERROR org.apache.spark.SparkContext  - Failed to add file:/home/davinci/./ to Spark environment
-    java.lang.IllegalArgumentException: Directory /home/davinci/. is not allowed for addJar
-
-Yes, this error is normal because Spark requires a parameter for the JAR file which we do not have as we specify the class name. We replace the JAR file with `.` which is not a true JAR file. The command should work successfully though.
