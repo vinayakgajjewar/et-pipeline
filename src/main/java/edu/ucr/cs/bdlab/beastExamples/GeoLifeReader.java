@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 University of California, Riverside
+ * Copyright 2020 University of California, Riverside
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,27 +51,22 @@ public class GeoLifeReader extends FeatureReader {
   /**The MBR of the current feature*/
   protected Envelope featureMBR = new Envelope(2);
 
-  /**A flag that is raised after the first six lines in the header are skipped*/
-  protected boolean headerSkipped;
-
   @Override
   public void initialize(InputSplit split, TaskAttemptContext context) throws IOException {
     lineReader.initialize(split, context);
-    headerSkipped = false;
   }
 
   @Override
   public boolean nextKeyValue() throws IOException {
-    if (!headerSkipped) {
+    if (!lineReader.nextKeyValue())
+      return false;
+    if (lineReader.getCurrentKey().get() == 0) {
       // Skip the first six lines
       for (int $i = 0; $i < 6; $i++) {
         if (!lineReader.nextKeyValue())
           return false;
       }
-      headerSkipped = true;
     }
-    if (!lineReader.nextKeyValue())
-      return false;
     Text value = lineReader.getCurrentValue();
     try {
       double longitude = Double.parseDouble(CSVFeature.deleteAttribute(value, ',', 1,
