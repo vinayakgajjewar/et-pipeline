@@ -19,6 +19,7 @@ import edu.ucr.cs.bdlab.geolite.Feature;
 import edu.ucr.cs.bdlab.geolite.IFeature;
 import edu.ucr.cs.bdlab.io.CSVFeatureWriter;
 import edu.ucr.cs.bdlab.io.SpatialInputFormat;
+import edu.ucr.cs.bdlab.sparkOperations.JCLIOperation;
 import edu.ucr.cs.bdlab.sparkOperations.SpatialJoin;
 import edu.ucr.cs.bdlab.sparkOperations.SpatialReader;
 import edu.ucr.cs.bdlab.sparkOperations.SpatialWriter;
@@ -39,18 +40,19 @@ import java.io.IOException;
  */
 @OperationMetadata(
     shortName =  "pip",
-    description = "Computes the point-in-polygon query between two inputs.",
+    description = "Computes the point-in-polygon query between two inputs. The two inputs are <polygons>, <points>.",
     inputArity = "2",
     outputArity = "1",
     inheritParams = {SpatialInputFormat.class})
-public class PointInPolygon {
+public class PointInPolygon implements JCLIOperation {
   @OperationParam(
       description = "Overwrite the output if it already exists {true, false}.",
       defaultValue = "false"
   )
   public static final String OverwriteOutput = "overwrite";
 
-  public static void run(UserOptions opts, JavaSparkContext sc) throws IOException {
+  @Override
+  public Object run(UserOptions opts, JavaSparkContext sc) throws IOException {
     // Read the input features for the two datasets
     JavaRDD<IFeature> polygons = SpatialReader.readInput(sc, opts, 0);
     JavaRDD<IFeature> points = SpatialReader.readInput(sc, opts, 1);
@@ -82,5 +84,6 @@ public class PointInPolygon {
         fileSystem.delete(outPath, true);
     }
     SpatialWriter.saveFeatures(results, oFormat, opts.getOutput(), opts);
+    return null;
   }
 }

@@ -68,6 +68,7 @@ public class IndexVisualize implements JCLIOperation {
   )
   public static final String OverwriteOutput = "overwrite";
 
+  @Override
   public Object run(UserOptions opts, JavaSparkContext sc) throws IOException {
     String indexOutput, plotOutput;
     plotOutput = opts.getNumOutputs() == 2? opts.getOutputs()[1] : opts.getInput()+"_plot";
