@@ -32,8 +32,12 @@ text file line-by-line.
     @Override
     public void initialize(InputSplit split, TaskAttemptContext context) throws IOException {
       lineReader.initialize(split, context);
-      headerSkipped = false;
+      this.immutableFeatures = context.getConfiguration().getBoolean(SpatialInputFormat.ImmutableObjects, false);
     }
+
+The flag `immutableFeatures` is important. This flag is automatically set to `true` in Spark or when object reuse
+is not possible. When this flag is set, the method `nextKeyValue` should always create a new key and value
+and should not reuse the objects. If not set, then objects can be reused to improve the performance.
 
 ## 3. Implement the `nextKeyValue` method
 
@@ -54,13 +58,17 @@ Once the end-of-file is reached, this method should return false.
             return false;
         }
       }
+      if (immutableFeatures || feature == null) {
+        feature = new CSVFeature(new Point(2));
+        featureMBR = new Envelope(2);
+      }
       Text value = lineReader.getCurrentValue();
       try {
         double longitude = Double.parseDouble(CSVFeature.deleteAttribute(value, ',', 1,
             CSVFeatureReader.DefaultQuoteCharacters));
         double latitude = Double.parseDouble(CSVFeature.deleteAttribute(value, ',', 0,
             CSVFeatureReader.DefaultQuoteCharacters));
-        feature = new CSVFeature(new Point(longitude, latitude));
+        ((Point)feature.getGeometry()).set(longitude, latitude);
         feature.setFieldSeparator((byte) ',');
         feature.setFieldValues(value.toString());
         feature.getGeometry().envelope(featureMBR);
@@ -82,7 +90,7 @@ Once the end-of-file is reached, this method should return false.
 
 This method just closes the underlying line reader to free up the resources.
 
-    public float getProgress() throws IOException { return lineReader.getProgress(); }
+    public void close() throws IOException { lineReader.close(); }
 
 ## 6. Add your new reader to the configuration files
 
@@ -169,6 +177,7 @@ The full source code is provided below for your reference.
     import edu.ucr.cs.bdlab.io.CSVFeature;
     import edu.ucr.cs.bdlab.io.CSVFeatureReader;
     import edu.ucr.cs.bdlab.io.FeatureReader;
+    import edu.ucr.cs.bdlab.io.SpatialInputFormat;
     import org.apache.commons.logging.Log;
     import org.apache.commons.logging.LogFactory;
     import org.apache.hadoop.io.Text;
@@ -197,11 +206,15 @@ The full source code is provided below for your reference.
       protected CSVFeature feature;
     
       /**The MBR of the current feature*/
-      protected Envelope featureMBR = new Envelope(2);
+      protected Envelope featureMBR;
+    
+      /**When this flag is set to true, a new object is created for each feature.*/
+      protected boolean immutableFeatures;
     
       @Override
       public void initialize(InputSplit split, TaskAttemptContext context) throws IOException {
         lineReader.initialize(split, context);
+        this.immutableFeatures = context.getConfiguration().getBoolean(SpatialInputFormat.ImmutableObjects, false);
       }
     
       @Override
@@ -215,13 +228,17 @@ The full source code is provided below for your reference.
               return false;
           }
         }
+        if (immutableFeatures || feature == null) {
+          feature = new CSVFeature(new Point(2));
+          featureMBR = new Envelope(2);
+        }
         Text value = lineReader.getCurrentValue();
         try {
           double longitude = Double.parseDouble(CSVFeature.deleteAttribute(value, ',', 1,
               CSVFeatureReader.DefaultQuoteCharacters));
           double latitude = Double.parseDouble(CSVFeature.deleteAttribute(value, ',', 0,
               CSVFeatureReader.DefaultQuoteCharacters));
-          feature = new CSVFeature(new Point(longitude, latitude));
+          ((Point)feature.getGeometry()).set(longitude, latitude);
           feature.setFieldSeparator((byte) ',');
           feature.setFieldValues(value.toString());
           feature.getGeometry().envelope(featureMBR);

@@ -21,6 +21,7 @@ import edu.ucr.cs.bdlab.geolite.Point;
 import edu.ucr.cs.bdlab.io.CSVFeature;
 import edu.ucr.cs.bdlab.io.CSVFeatureReader;
 import edu.ucr.cs.bdlab.io.FeatureReader;
+import edu.ucr.cs.bdlab.io.SpatialInputFormat;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.io.Text;
@@ -49,11 +50,15 @@ public class GeoLifeReader extends FeatureReader {
   protected CSVFeature feature;
 
   /**The MBR of the current feature*/
-  protected Envelope featureMBR = new Envelope(2);
+  protected Envelope featureMBR;
+
+  /**When this flag is set to true, a new object is created for each feature.*/
+  protected boolean immutableFeatures;
 
   @Override
   public void initialize(InputSplit split, TaskAttemptContext context) throws IOException {
     lineReader.initialize(split, context);
+    this.immutableFeatures = context.getConfiguration().getBoolean(SpatialInputFormat.ImmutableObjects, false);
   }
 
   @Override
@@ -67,13 +72,17 @@ public class GeoLifeReader extends FeatureReader {
           return false;
       }
     }
+    if (immutableFeatures || feature == null) {
+      feature = new CSVFeature(new Point(2));
+      featureMBR = new Envelope(2);
+    }
     Text value = lineReader.getCurrentValue();
     try {
       double longitude = Double.parseDouble(CSVFeature.deleteAttribute(value, ',', 1,
           CSVFeatureReader.DefaultQuoteCharacters));
       double latitude = Double.parseDouble(CSVFeature.deleteAttribute(value, ',', 0,
           CSVFeatureReader.DefaultQuoteCharacters));
-      feature = new CSVFeature(new Point(longitude, latitude));
+      ((Point)feature.getGeometry()).set(longitude, latitude);
       feature.setFieldSeparator((byte) ',');
       feature.setFieldValues(value.toString());
       feature.getGeometry().envelope(featureMBR);
