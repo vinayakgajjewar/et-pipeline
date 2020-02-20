@@ -8,7 +8,7 @@ that runs Spark operations from the command line.
 
 Add the following line to your `~/.bashrc` and open a new shell window.
 
-    alias beast="spark-submit --packages edu.ucr.cs.bdlab:beast-spark:0.2.0 --class edu.ucr.cs.bdlab.sparkOperations.Main ."
+    alias beast="spark-submit --packages edu.ucr.cs.bdlab:beast-spark:0.2.1 --class edu.ucr.cs.bdlab.sparkOperations.Main ."
 
 ## Prerequisites
 
@@ -19,13 +19,38 @@ It can be configured to run in the local mode or the distributed (cluster) mode.
 Only if you would like to compile Beast from source. 
 3. [Maven](https://maven.apache.org/): Only if you would like to compile Beast from source.
 
-## Method 1. No installation required
+## Method 1. `beast` bash script
+
+This method installs a bash script that runs Beast CLI either through a JAR file (if exists)
+or through a Maven package.
+
+1. Download the
+[beast](https://bitbucket.org/eldawy/beast/src/master/beast-spark/src/main/resources/beast)
+bash script.
+
+2. Add it to the executable path. In your `~/.bashrc` or `~/.profile`, add the following line
+`export PATH=$PATH:<beastdir>` where `<beastdir>` is the path in which you downloaded the `beast`
+bash script.
+
+3. This method allows you to pass additional Spark options to the command.
+For example, the following command sets the driver memory to 16 GB while running the command.
+
+
+    beast --driver-memory 16g summary <input>
+
+4. This script also allows you to run Beast with a custom-built JAR file. It will first look for
+a JAR file in the same directory as the script named `beast-uber-spark*.jar`. If found, it will
+be used as the main JAR file. If not, it will use the recent version of
+[Beast](https://mvnrepository.com/artifact/edu.ucr.cs.bdlab/beast-spark)
+available on the central Maven repository.
+
+## Method 2. No installation required
 
 Spark allows you run a main class from any available maven library.
 This is probably the easiest way to run any released version of Beast.
 For example, to run beast version 0.2.0, you can define the following shorthand (alias).
 
-    alias beast="spark-submit --packages edu.ucr.cs.bdlab:beast-spark:0.2.0 --class edu.ucr.cs.bdlab.sparkOperations.Main ."
+    alias beast="spark-submit --packages edu.ucr.cs.bdlab:beast-spark:0.2.1 --class edu.ucr.cs.bdlab.sparkOperations.Main ."
     
 After that, you can run beast by simply typing `beast`.
 You can also add that line to your `~/.bashrc` or `~/.profile` to make it readily available on startup.
@@ -39,7 +64,7 @@ You can also add that line to your `~/.bashrc` or `~/.profile` to make it readil
 This is normal as Spark expects a mandatory parameter for the application to run which we do not have in the case of Beast.
 For now, just ignore this error.
 
-## Method 2. Based on a JAR file
+## Method 3. Based on a JAR file
 
 Method 1 works fine for any version that is released and available on Maven Central Repository.
 However, if you have a customized version of Beast based on the source code, you need to use this second method.
