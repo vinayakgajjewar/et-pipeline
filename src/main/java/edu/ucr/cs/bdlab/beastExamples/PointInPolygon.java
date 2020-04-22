@@ -15,6 +15,7 @@
  */
 package edu.ucr.cs.bdlab.beastExamples;
 
+import edu.ucr.cs.bdlab.cg.SpatialJoinAlgorithms;
 import edu.ucr.cs.bdlab.geolite.Feature;
 import edu.ucr.cs.bdlab.geolite.IFeature;
 import edu.ucr.cs.bdlab.io.CSVFeatureWriter;
@@ -58,7 +59,7 @@ public class PointInPolygon implements JCLIOperation {
     JavaRDD<IFeature> points = SpatialReader.readInput(sc, opts, 1);
 
     // Compute the spatial join
-    JavaPairRDD<IFeature, IFeature> joinsResults = SpatialJoin.spatialJoinBNLJ(polygons, points, "contains");
+    JavaPairRDD<IFeature, IFeature> joinsResults = SpatialJoin.spatialJoinBNLJ(polygons, points, SpatialJoinAlgorithms.ESJPredicate.Contains);
 
     // Combine the results into features while removing the polygon geometry and keeping only its attributes
     JavaRDD<Feature> results = joinsResults.map(pair -> {
