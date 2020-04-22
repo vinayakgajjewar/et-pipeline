@@ -23,9 +23,7 @@ import java.util.Map;
  * A plotter that draws the geometry of the features (e.g., the point location or polygon boundary)
  */
 @Plotter.Metadata(
-    shortname = "cgplot",
-    description = "..."
-)
+    shortname = "cgplot", description = "...", imageExtension = ".png")
 public class ClusterPlotter extends Plotter {
 
   @OperationParam(

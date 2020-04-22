@@ -127,7 +127,6 @@ public class IndexVisualize implements JCLIOperation {
     opts.setBoolean(MultilevelPyramidPlotHelper.IncludeDataTiles, false);
     // Adjust the input format to read from the R-tree index correctly
     opts.set(SpatialInputFormat.InputFormat, "rtree");
-    opts.setClass(SpatialInputFormat.FeatureReaderClass, RTreeFeatureReader.class, FeatureReader.class);
     // Create a full 20-level visualization
     MultilevelPyramidPlotHelper.Range levels = new MultilevelPyramidPlotHelper.Range(0, 19);
     // Start the actual visualization
