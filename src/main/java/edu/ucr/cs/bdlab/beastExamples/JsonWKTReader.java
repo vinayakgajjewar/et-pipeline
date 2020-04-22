@@ -101,36 +101,12 @@ public class JsonWKTReader extends FeatureReader {
     }
   }
 
-  /**
-   * An initializer that can be used outside the regular MapReduce context.
-   * @param inputFile
-   * @param conf
-   * @throws IOException
-   * @throws InterruptedException
-   */
-  public void initialize(Path inputFile, Configuration conf) throws IOException {
-    FileSystem fileSystem = inputFile.getFileSystem(conf);
-    FileStatus fileStatus = fileSystem.getFileStatus(inputFile);
-    BlockLocation[] fileBlockLocations = fileSystem.getFileBlockLocations(fileStatus, 0, fileStatus.getLen());
-    List<String> hosts = new ArrayList<String>();
-    for (int i = 0; i < fileBlockLocations.length; i++)
-      for (String host : fileBlockLocations[i].getHosts())
-        hosts.add(host);
-    FileSplit fileSplit = new FileSplit(inputFile, 0, fileStatus.getLen(), hosts.toArray(new String[hosts.size()]));
-    TaskAttemptContext context = new TaskAttemptContextImpl(conf, new TaskAttemptID());
-    this.initialize(fileSplit, context);
-  }
-
-  protected Feature createValue() {
-    return new Feature();
-  }
-
   @Override
   public boolean nextKeyValue() throws IOException {
     if (!lineReader.nextKeyValue())
       return false;
     if (feature == null || immutable)
-      feature = createValue();
+      feature = new Feature();
     else
       feature.clearAttributes();
     // Read the line as text and parse it as JSON
@@ -171,17 +147,17 @@ public class JsonWKTReader extends FeatureReader {
   }
 
   @Override
-  public Envelope getCurrentKey() throws IOException, InterruptedException {
+  public Envelope getCurrentKey() {
     return null;
   }
 
   @Override
-  public IFeature getCurrentValue() throws IOException, InterruptedException {
+  public IFeature getCurrentValue() {
     return feature;
   }
 
   @Override
-  public float getProgress() throws IOException, InterruptedException {
+  public float getProgress() throws IOException {
     return lineReader.getProgress();
   }
 

@@ -54,6 +54,15 @@ The extension is automatically appended to the output file created by this write
 In other words, the parameter `filePath` passed to the `initialize` method will contain that extension.
 The shortName is what the users will need to specify as a parameter to use this new writer.
 
+# 6. Configure Beast to use the new writer
+
+To make your new writer accessible to all components of Beast, includingn the command-line interface,
+add the following lines to the file `beast.xml`
+
+    <Writers>
+      <Writer>edu.ucr.cs.bdlab.beastExamples.NewWriter</Writer>
+    </Writers>
+
 ## How to use your new writer
 
 Let's say you want to convert a file from any supported file format to your new format.
@@ -67,5 +76,6 @@ Then, compile your code into JAR using the following command:
 Let's say the generated JAR file is called `beast-example.jar`.
 Now you can run the following command:
 
-    spark-submit --packages edu.ucr.cs.bdlab:beast-spark:0.2.0 beast-example.jar \
-       edu.ucr.cs.bdlab.sparkOperations.Main cat ne_10m_airports.zip iformat:shapefile airports.xyz oformat:newwriter
+    spark-submit --packages edu.ucr.cs.bdlab:beast-spark:0.2.0 \
+        --class edu.ucr.cs.bdlab.sparkOperations.Main beast-example.jar \
+        cat ne_10m_airports.zip iformat:shapefile airports.xyz oformat:newwriter

@@ -17,11 +17,9 @@ package edu.ucr.cs.bdlab.beastExamples;
 
 import edu.ucr.cs.bdlab.geolite.Envelope;
 import edu.ucr.cs.bdlab.geolite.IFeature;
-import edu.ucr.cs.bdlab.geolite.Point;
 import edu.ucr.cs.bdlab.geolite.twod.LineString2D;
 import edu.ucr.cs.bdlab.io.CSVFeature;
 import edu.ucr.cs.bdlab.io.CSVFeatureReader;
-import edu.ucr.cs.bdlab.io.CSVFeatureWriter;
 import edu.ucr.cs.bdlab.io.FeatureReader;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
