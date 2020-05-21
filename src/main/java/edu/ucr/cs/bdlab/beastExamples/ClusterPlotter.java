@@ -17,6 +17,7 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Map;
 
 /**
@@ -67,7 +68,7 @@ public class ClusterPlotter extends Plotter {
   }
 
   @Override
-  public void writeImage(Canvas layer, DataOutputStream out, boolean vflip) throws IOException {
+  public void writeImage(Canvas layer, OutputStream out, boolean vflip) throws IOException {
     ClusterCanvas clusterCanvas =  (ClusterCanvas)layer;
     double xscale = clusterCanvas.getWidth() / clusterCanvas.getInputMBR().getSideLength(0);
     double yscale = clusterCanvas.getHeight() / clusterCanvas.getInputMBR().getSideLength(1);

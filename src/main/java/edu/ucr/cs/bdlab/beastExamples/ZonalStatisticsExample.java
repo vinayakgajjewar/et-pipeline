@@ -15,9 +15,9 @@
  */
 package edu.ucr.cs.bdlab.beastExamples;
 
-import edu.ucr.cs.bdlab.geolite.Envelope;
 import edu.ucr.cs.bdlab.geolite.IFeature;
 import edu.ucr.cs.bdlab.geolite.IGeometry;
+import edu.ucr.cs.bdlab.io.SpatialInputFormat;
 import edu.ucr.cs.bdlab.raptor.Collector;
 import edu.ucr.cs.bdlab.raptor.HDF4Reader;
 import edu.ucr.cs.bdlab.raptor.Statistics;
@@ -30,7 +30,6 @@ import org.apache.hadoop.fs.Path;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 
-import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -47,26 +46,15 @@ public class ZonalStatisticsExample {
     JavaSparkContext sc = new JavaSparkContext("local[*]", "test");
     UserOptions opts = new UserOptions();
 
-    // 2. Load the polygons
-    JavaRDD<IFeature> polygons = SpatialReader.readInput(sc, opts, "tl_2018_us_state.zip", "shapefile");
-    List<IFeature> features = polygons.collect();
-
-    // 3. Reproject to Sinusoidal space
-    Envelope mbr = new Envelope(2);
-    for (IFeature f : features) {
-      HDF4Reader.wgsToSinusoidal(f.getGeometry());
-      mbr.merge(f.getGeometry());
-    }
-
-    // 4. Locate all dates for the raster data
+    // 2. Locate all dates for the raster data
     String startDate = "2018.01.01";
     String endDate = "2018.01.03";
     Path rasterPath = new Path("raster");
     FileSystem rFileSystem = rasterPath.getFileSystem(opts);
     FileStatus[] matchingDates = rFileSystem.listStatus
-        (rasterPath, HDF4Reader.createDateFilter(startDate, endDate));
+            (rasterPath, HDF4Reader.createDateFilter(startDate, endDate));
 
-    // 5. Select all files under the matching dates
+    // 3. Select all files under the matching dates
     List<Path> allRasterFiles = new ArrayList<>();
     for (FileStatus matchingDir : matchingDates) {
       FileStatus[] matchingTiles = rFileSystem.listStatus(matchingDir.getPath());
@@ -74,7 +62,17 @@ public class ZonalStatisticsExample {
         allRasterFiles.add(p.getPath());
     }
 
-    // 7. Initialize the list of geometries and results array
+    // 4. Determine the CRS of the raster data to reproject the vector data
+    HDF4Reader raster = new HDF4Reader();
+    raster.initialize(rFileSystem, allRasterFiles.get(0), "LST_Day_1km");
+    opts.set(SpatialInputFormat.TargetCRS, raster.getCRS().toWKT());
+    raster.close();
+
+    // 5. Load the polygons
+    JavaRDD<IFeature> polygons = SpatialReader.readInput(sc, opts, "tl_2018_us_state.zip", "shapefile");
+    List<IFeature> features = polygons.collect();
+
+    // 6. Initialize the list of geometries and results array
     IGeometry[] geometries = new IGeometry[features.size()];
     Statistics[] finalResults = new Statistics[features.size()];
     for (int i = 0; i < features.size(); i++) {
@@ -84,7 +82,6 @@ public class ZonalStatisticsExample {
     }
 
     // 7. Run the zonal statistics operation
-    HDF4Reader raster = new HDF4Reader();
     for (Path rasterFile : allRasterFiles) {
       raster.initialize(rFileSystem, rasterFile, "LST_Day_1km");
       Collector[] stats = ZonalStatistics.computeZonalStatisticsScanline(raster, geometries, Statistics.class);
