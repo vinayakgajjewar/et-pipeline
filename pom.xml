@@ -6,7 +6,7 @@
 
   <groupId>edu.ucr.cs.bdlab</groupId>
   <artifactId>beast-examples</artifactId>
-  <version>0.2.3</version>
+  <version>0.2.4-SNAPSHOT</version>
 
   <name>beast-examples</name>
   <url>https://bitbucket.org/eldawy/beast-examples</url>
