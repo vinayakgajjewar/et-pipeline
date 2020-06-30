@@ -18,33 +18,25 @@ package edu.ucr.cs.bdlab.beastExamples;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
-import edu.ucr.cs.bdlab.geolite.Envelope;
+import edu.ucr.cs.bdlab.geolite.EnvelopeND;
 import edu.ucr.cs.bdlab.geolite.Feature;
 import edu.ucr.cs.bdlab.geolite.IFeature;
-import edu.ucr.cs.bdlab.geolite.IGeometry;
 import edu.ucr.cs.bdlab.io.FeatureReader;
 import edu.ucr.cs.bdlab.io.SpatialInputFormat;
 import edu.ucr.cs.bdlab.util.OperationParam;
-import edu.ucr.cs.bdlab.wktparser.ParseException;
-import edu.ucr.cs.bdlab.wktparser.WKTParser;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.BlockLocation;
-import org.apache.hadoop.fs.FileStatus;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
-import org.apache.hadoop.mapreduce.TaskAttemptID;
-import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.apache.hadoop.mapreduce.lib.input.LineRecordReader;
-import org.apache.hadoop.mapreduce.task.TaskAttemptContextImpl;
+import org.locationtech.jts.geom.Envelope;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.io.ParseException;
+import org.locationtech.jts.io.WKTReader;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * A custom record reader to use for a demo
@@ -73,14 +65,10 @@ public class JsonWKTReader extends FeatureReader {
   protected Feature feature;
 
   /**If the input contains wkt-encoded geometries, this is used to parse them*/
-  protected final WKTParser wktParser = new WKTParser();
+  protected final WKTReader wktReader = new WKTReader();
 
   /**An optional attributed to filter the geometries in the input file*/
-  protected Envelope filterMBR;
-
-  /**This flag signals the record reader to use immutable objects (a new object per record) which is useful with some
-   * Spark operations that is not designed for mutable objects, e.g., partitionBy used in indexing*/
-  protected boolean immutable;
+  protected EnvelopeND filterMBR;
 
   /**The underlying JSON parser*/
   protected final JsonFactory jsonFactory = new JsonFactory();
@@ -90,14 +78,13 @@ public class JsonWKTReader extends FeatureReader {
     lineReader.initialize(inputSplit, taskAttemptContext);
     Configuration conf = taskAttemptContext.getConfiguration();
     this.wktAttrName = conf.get(WKTAttribute, "boundaryshape");
-    this.immutable = conf.getBoolean(SpatialInputFormat.ImmutableObjects, false);
     String filterMBRStr = conf.get(SpatialInputFormat.FilterMBR);
     if (filterMBRStr != null) {
       String[] parts = filterMBRStr.split(",");
       double[] dblParts = new double[parts.length];
       for (int i = 0; i < parts.length; i++)
         dblParts[i] = Double.parseDouble(parts[i]);
-      this.filterMBR = new Envelope(dblParts.length/2, dblParts);
+      this.filterMBR = new EnvelopeND(dblParts.length/2, dblParts);
     }
   }
 
@@ -105,10 +92,7 @@ public class JsonWKTReader extends FeatureReader {
   public boolean nextKeyValue() throws IOException {
     if (!lineReader.nextKeyValue())
       return false;
-    if (feature == null || immutable)
-      feature = new Feature();
-    else
-      feature.clearAttributes();
+    feature = new Feature();
     // Read the line as text and parse it as JSON
     Text line = lineReader.getCurrentValue();
     JsonParser parser = jsonFactory.createParser(line.getBytes(), 0, line.getLength());
@@ -120,7 +104,7 @@ public class JsonWKTReader extends FeatureReader {
           // Read the geometry
           String wkt = parser.nextTextValue();
           try {
-            IGeometry geometry = wktParser.parse(wkt, feature.getGeometry());
+            Geometry geometry = wktReader.read(wkt);
             feature.setGeometry(geometry);
           } catch (ParseException e) {
             throw new RuntimeException(String.format("Error parsing WKT '%s'", wkt), e);
@@ -147,7 +131,7 @@ public class JsonWKTReader extends FeatureReader {
   }
 
   @Override
-  public Envelope getCurrentKey() {
+  public EnvelopeND getCurrentKey() {
     return null;
   }
 

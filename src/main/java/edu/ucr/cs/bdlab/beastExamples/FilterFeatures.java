@@ -15,13 +15,15 @@
  */
 package edu.ucr.cs.bdlab.beastExamples;
 
-import edu.ucr.cs.bdlab.geolite.Envelope;
 import edu.ucr.cs.bdlab.geolite.IFeature;
 import edu.ucr.cs.bdlab.io.SpatialInputFormat;
 import edu.ucr.cs.bdlab.sparkOperations.SpatialReader;
 import edu.ucr.cs.bdlab.util.UserOptions;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
+import org.locationtech.jts.geom.Envelope;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryFactory;
 
 
 /**
@@ -44,7 +46,7 @@ public class FilterFeatures {
       JavaRDD<IFeature> filtered_airports = SpatialReader.readInput(sc, opts, "ne_10m_airports.zip", "shapefile");
       System.out.printf("Number of loaded airports is %d\n", filtered_airports.count());
 
-      Envelope range = new Envelope(2, -128.1, 27.3, -63.8, 54.3);
+      Geometry range = new GeometryFactory().toGeometry(new Envelope(-128.1, -63.8, 27.3, 54.3));
       JavaRDD<IFeature> filtered_airports2 = airports.filter(f -> range.contains(f.getGeometry()));
       System.out.printf("Number of filtered airports is %d\n", filtered_airports2.count());
     }

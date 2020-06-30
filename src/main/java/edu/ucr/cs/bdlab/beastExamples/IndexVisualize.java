@@ -20,16 +20,13 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import edu.ucr.cs.bdlab.davinci.GeometricPlotter;
 import edu.ucr.cs.bdlab.davinci.MultilevelPyramidPlotHelper;
-import edu.ucr.cs.bdlab.geolite.Envelope;
+import edu.ucr.cs.bdlab.geolite.EnvelopeND;
 import edu.ucr.cs.bdlab.geolite.Feature;
 import edu.ucr.cs.bdlab.geolite.IFeature;
-import edu.ucr.cs.bdlab.geolite.IGeometry;
-import edu.ucr.cs.bdlab.geolite.Point;
+import edu.ucr.cs.bdlab.geolite.PointND;
 import edu.ucr.cs.bdlab.indexing.IndexerParams;
 import edu.ucr.cs.bdlab.indexing.RSGrovePartitioner;
-import edu.ucr.cs.bdlab.indexing.RTreeFeatureReader;
 import edu.ucr.cs.bdlab.indexing.RTreeFeatureWriter;
-import edu.ucr.cs.bdlab.io.FeatureReader;
 import edu.ucr.cs.bdlab.io.FeatureWriter;
 import edu.ucr.cs.bdlab.io.SpatialInputFormat;
 import edu.ucr.cs.bdlab.io.SpatialOutputFormat;
@@ -47,6 +44,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
+import org.locationtech.jts.geom.Geometry;
 
 import java.io.IOException;
 
@@ -97,21 +95,12 @@ public class IndexVisualize implements JCLIOperation {
 
     // Reduce geometries to two dimensions to allow geometric plotter to work
     input = input.map(f -> {
-      IGeometry geom = f.getGeometry();
-      if (geom.getCoordinateDimension() > 2) {
-        // Reduce geometry coordinates to two dimensions
-        switch (geom.getType()) {
-          case POINT:
-            Point point = (Point) geom;
-            geom = new Point(point.coords[0], point.coords[1]);
-            break;
-          case ENVELOPE:
-            Envelope envelope = (Envelope) geom;
-            geom = new Envelope(2, envelope.minCoord[0], envelope.minCoord[1], envelope.maxCoord[0], envelope.maxCoord[1]);
-            break;
-          default:
-            throw new RuntimeException(String.format("Cannot reduce the dimensions of geometries of type '%s'", geom.getType()));
-        }
+      Geometry geom = f.getGeometry();
+      // Reduce geometry coordinates to two dimensions
+      if (geom instanceof PointND && ((PointND)geom).getCoordinateDimension() > 2) {
+        geom = geom.getCentroid();
+      } else if (geom instanceof EnvelopeND && ((EnvelopeND)geom).getCoordinateDimension() > 2) {
+        geom = geom.getEnvelope();
       }
       return new Feature(geom);
     });

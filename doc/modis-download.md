@@ -27,7 +27,6 @@ While you can browse the LP DAAC archive anonymously, you need an active account
 This step sets up your credentials to use with the download script.
 Simply, create a file named `~/.netrc` with the following format.
 
-
     machine urs.earthdata.nasa.gov
             login <username>
             password <userpassword>

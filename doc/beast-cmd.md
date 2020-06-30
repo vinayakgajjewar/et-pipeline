@@ -8,7 +8,7 @@ that runs Spark operations from the command line.
 
 Add the following line to your `~/.bashrc` and open a new shell window.
 
-    alias beast="spark-submit --packages edu.ucr.cs.bdlab:beast-spark:0.2.1 --class edu.ucr.cs.bdlab.sparkOperations.Main ."
+    alias beast="spark-submit --packages edu.ucr.cs.bdlab:beast-spark:0.5.0-RC1 --class edu.ucr.cs.bdlab.sparkOperations.Main ."
 
 ## Prerequisites
 
@@ -48,9 +48,9 @@ available on the central Maven repository.
 
 Spark allows you run a main class from any available maven library.
 This is probably the easiest way to run any released version of Beast.
-For example, to run beast version 0.2.0, you can define the following shorthand (alias).
+For example, to run beast version 0.5.0-RC1, you can define the following shorthand (alias).
 
-    alias beast="spark-submit --packages edu.ucr.cs.bdlab:beast-spark:0.2.1 --class edu.ucr.cs.bdlab.sparkOperations.Main ."
+    alias beast="spark-submit --packages edu.ucr.cs.bdlab:beast-spark:0.5.0-RC1 --class edu.ucr.cs.bdlab.sparkOperations.Main ."
     
 After that, you can run beast by simply typing `beast`.
 You can also add that line to your `~/.bashrc` or `~/.profile` to make it readily available on startup.

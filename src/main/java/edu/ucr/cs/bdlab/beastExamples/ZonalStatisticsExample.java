@@ -16,7 +16,6 @@
 package edu.ucr.cs.bdlab.beastExamples;
 
 import edu.ucr.cs.bdlab.geolite.IFeature;
-import edu.ucr.cs.bdlab.geolite.IGeometry;
 import edu.ucr.cs.bdlab.io.SpatialInputFormat;
 import edu.ucr.cs.bdlab.raptor.Collector;
 import edu.ucr.cs.bdlab.raptor.HDF4Reader;
@@ -29,6 +28,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
+import org.locationtech.jts.geom.Geometry;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -73,7 +73,7 @@ public class ZonalStatisticsExample {
     List<IFeature> features = polygons.collect();
 
     // 6. Initialize the list of geometries and results array
-    IGeometry[] geometries = new IGeometry[features.size()];
+    Geometry[] geometries = new Geometry[features.size()];
     Statistics[] finalResults = new Statistics[features.size()];
     for (int i = 0; i < features.size(); i++) {
       geometries[i] = features.get(i).getGeometry();

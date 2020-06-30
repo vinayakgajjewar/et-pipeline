@@ -16,24 +16,24 @@ In order to use Beast, you need the following prerequistes installed on your mac
 
 If you have an existing Maven-based project, then you can integrate it with Beast by
 adding the following dependency to your `pom.xml` file.
-
-    <!-- https://mvnrepository.com/artifact/edu.ucr.cs.bdlab/beast -->
-    <dependency>
-      <groupId>edu.ucr.cs.bdlab</groupId>
-      <artifactId>beast-spark</artifactId>
-      <version>0.2.0</version>
-    </dependency>
-
+```xml
+<!-- https://mvnrepository.com/artifact/edu.ucr.cs.bdlab/beast -->
+<dependency>
+  <groupId>edu.ucr.cs.bdlab</groupId>
+  <artifactId>beast-spark</artifactId>
+  <version>0.5.0-RC1</version>
+</dependency>
+```
 Instead, you can [first create a new Maven project](https://maven.apache.org/guides/getting-started/index.html#How_do_I_make_my_first_Maven_project)
 before adding the Beast dependency.
 
 Another option is to clone the beast-examples project from BitBucket and
 you might also want to base it on a stable version of the code.
-
-    git clone https://bitbucket.org/eldawy/beast-examples.git
-    cd beast-examples
-    git checkout -b mybranch 0.2.0
-
+```shell
+git clone https://bitbucket.org/eldawy/beast-examples.git
+cd beast-examples
+git checkout -b mybranch 0.2.0
+```
 ## Write your code
 
 Now, you can write your code in the new project.
@@ -50,13 +50,14 @@ This will generate a new JAR under `target/` directory.
 
 If your JAR does not contain a main file or if you want to run one of the standard
 operations in Beast, use the following command.
-
-    spark-submit --packages edu.ucr.cs.bdlab:beast-spark:0.2.0 \
-       --jars target/my-app.jar \
-       edu.ucr.cs.bdlab.sparkOperations.Main
-
+```shell script
+spark-submit --packages edu.ucr.cs.bdlab:beast-spark:0.5.0-RC1 \
+   --jars target/my-app.jar \
+   edu.ucr.cs.bdlab.sparkOperations.Main
+```
 Instead, if your project contains a main class that you want to run, you should run the following command:
-
-    spark-submit --packages edu.ucr.cs.bdlab:beast-spark:0.2.0 \
-       --jars target/my-app.jar \
-       <class name>
+```shell script
+spark-submit --packages edu.ucr.cs.bdlab:beast-spark:0.5.0-RC1 \
+   --jars target/my-app.jar \
+   <class name>
+```

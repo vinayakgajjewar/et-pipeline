@@ -15,9 +15,8 @@
  */
 package edu.ucr.cs.bdlab.beastExamples;
 
-import edu.ucr.cs.bdlab.geolite.Envelope;
+import edu.ucr.cs.bdlab.geolite.EnvelopeND;
 import edu.ucr.cs.bdlab.geolite.IFeature;
-import edu.ucr.cs.bdlab.geolite.twod.LineString2D;
 import edu.ucr.cs.bdlab.io.CSVFeature;
 import edu.ucr.cs.bdlab.io.CSVFeatureReader;
 import edu.ucr.cs.bdlab.io.FeatureReader;
@@ -27,6 +26,10 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.LineRecordReader;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.CoordinateXY;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.LineString;
 
 import java.io.IOException;
 
@@ -50,7 +53,9 @@ public class RoadsReader extends FeatureReader {
   protected CSVFeature feature;
 
   /**The MBR of the current feature*/
-  protected Envelope featureMBR = new Envelope(2);
+  protected final EnvelopeND featureMBR = new EnvelopeND(2);
+
+  protected GeometryFactory factory = featureMBR.getFactory();
 
   @Override
   public void initialize(InputSplit split, TaskAttemptContext context) throws IOException {
@@ -67,13 +72,16 @@ public class RoadsReader extends FeatureReader {
       double y1 = Double.parseDouble(CSVFeature.deleteAttribute(value, ',', 2, CSVFeatureReader.DefaultQuoteCharacters));
       double x2 = Double.parseDouble(CSVFeature.deleteAttribute(value, ',', 3, CSVFeatureReader.DefaultQuoteCharacters));
       double y2 = Double.parseDouble(CSVFeature.deleteAttribute(value, ',', 3, CSVFeatureReader.DefaultQuoteCharacters));
-      LineString2D lineString = new LineString2D();
-      lineString.addPoint(x1, y1);
-      lineString.addPoint(x2, y2);
+      Coordinate[] coordinates = {
+              new CoordinateXY(x1, y1),
+              new CoordinateXY(x2, y2)
+      };
+      LineString lineString = factory.createLineString(coordinates);
       feature = new CSVFeature(lineString);
       feature.setFieldSeparator((byte) ',');
       feature.setFieldValues(value.toString());
-      feature.getGeometry().envelope(featureMBR);
+      featureMBR.setEmpty();
+      featureMBR.merge(feature.getGeometry());
       return true;
     } catch (Exception e) {
       LOG.error(String.format("Error reading object at %d with value '%s'", lineReader.getCurrentKey().get(), value));
@@ -82,7 +90,7 @@ public class RoadsReader extends FeatureReader {
   }
 
   @Override
-  public Envelope getCurrentKey() {
+  public EnvelopeND getCurrentKey() {
     return featureMBR;
   }
 

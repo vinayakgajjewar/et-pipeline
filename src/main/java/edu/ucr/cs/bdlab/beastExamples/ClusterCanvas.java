@@ -1,16 +1,13 @@
 package edu.ucr.cs.bdlab.beastExamples;
 
 import edu.ucr.cs.bdlab.davinci.Canvas;
-import edu.ucr.cs.bdlab.geolite.Envelope;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Envelope;
 
-import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.geom.Rectangle2D;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -24,13 +21,13 @@ public class ClusterCanvas extends Canvas {
     super(mbr, width, height);
   }
 
-  public void addPoint(edu.ucr.cs.bdlab.geolite.Point p, int radius, Envelope mbr) {
-    double xscale = this.width / this.inputMBR.getSideLength(0);
-    double yscale = this.height / this.inputMBR.getSideLength(1);
-    int minx1 = (int)(mbr.minCoord[0] * xscale);
-    int miny1 = (int)(mbr.minCoord[1] * yscale);
-    int maxx1 = (int)(mbr.maxCoord[0] * xscale);
-    int maxy1 = (int)(mbr.maxCoord[1] * yscale);
+  public void addPoint(Coordinate c, int radius, Envelope mbr) {
+    double xscale = this.width / this.inputMBR.getWidth();
+    double yscale = this.height / this.inputMBR.getHeight();
+    int minx1 = (int)(mbr.getMinX() * xscale);
+    int miny1 = (int)(mbr.getMinY() * yscale);
+    int maxx1 = (int)(mbr.getMaxX() * xscale);
+    int maxy1 = (int)(mbr.getMaxY() * yscale);
     if (maxx1 - minx1 < radius) {
       int diff = radius - (maxx1 - minx1);
       minx1 -= diff / 2;

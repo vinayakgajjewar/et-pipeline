@@ -2,11 +2,13 @@ package edu.ucr.cs.bdlab.beastExamples;
 
 import edu.ucr.cs.bdlab.davinci.Canvas;
 import edu.ucr.cs.bdlab.davinci.Plotter;
-import edu.ucr.cs.bdlab.geolite.Envelope;
+import edu.ucr.cs.bdlab.geolite.EnvelopeND;
 import edu.ucr.cs.bdlab.geolite.IFeature;
-import edu.ucr.cs.bdlab.geolite.Point;
+import edu.ucr.cs.bdlab.geolite.PointND;
 import edu.ucr.cs.bdlab.util.OperationParam;
 import org.apache.hadoop.conf.Configuration;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Envelope;
 
 import javax.imageio.ImageIO;
 import java.awt.Color;
@@ -47,12 +49,11 @@ public class ClusterPlotter extends Plotter {
 
   @Override
   public boolean plot(Canvas canvasLayer, IFeature shape) {
-    Point point = new Point(2);
-    Envelope mbr=new Envelope(2);
-    shape.getGeometry().envelope(mbr);
-    shape.getGeometry().centroid(point);
+    PointND point = new PointND(2);
+    Envelope mbr = shape.getGeometry().getEnvelopeInternal();
+    Coordinate centroid = shape.getGeometry().getCentroid().getCoordinate();
     ClusterCanvas canvas = (ClusterCanvas) canvasLayer;
-    canvas.addPoint(point,radius,mbr);
+    canvas.addPoint(centroid, radius, mbr);
     return true;
   }
 
@@ -70,10 +71,10 @@ public class ClusterPlotter extends Plotter {
   @Override
   public void writeImage(Canvas layer, OutputStream out, boolean vflip) throws IOException {
     ClusterCanvas clusterCanvas =  (ClusterCanvas)layer;
-    double xscale = clusterCanvas.getWidth() / clusterCanvas.getInputMBR().getSideLength(0);
-    double yscale = clusterCanvas.getHeight() / clusterCanvas.getInputMBR().getSideLength(1);
-    int xtranslate = (int) (clusterCanvas.getInputMBR().minCoord[0] * xscale);
-    int ytranslate = (int) (clusterCanvas.getInputMBR().minCoord[1] * yscale);
+    double xscale = clusterCanvas.getWidth() / clusterCanvas.getInputMBR().getWidth();
+    double yscale = clusterCanvas.getHeight() / clusterCanvas.getInputMBR().getHeight();
+    int xtranslate = (int) (clusterCanvas.getInputMBR().getMinX() * xscale);
+    int ytranslate = (int) (clusterCanvas.getInputMBR().getMinY() * yscale);
 
     BufferedImage finalImage = new BufferedImage(clusterCanvas.getWidth(), clusterCanvas.getHeight(),
         BufferedImage.TYPE_INT_ARGB);
