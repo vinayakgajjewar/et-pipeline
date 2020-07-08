@@ -11,13 +11,14 @@ This tutorial implements a new feature reader that reads trajectory data from th
 
 Create a new class that extends `FeatureReader`.
 
-    @FeatureReader.Metadata(
-        description = "Parses GeoLife .plt files",
-        shortName = "geolife",
-        extension = ".plt"
-    )
-    public class GeoLifeReader extends FeatureReader {}
-    
+```java
+@FeatureReader.Metadata(
+    description = "Parses GeoLife .plt files",
+    shortName = "geolife",
+    extension = ".plt"
+)
+public class GeoLifeReader extends FeatureReader {}
+```
 The annotation `FeatureReader.Metadata` is required and it makes it easier to use the new feature reader.
 Further, the `extension` attribute allows Beast to autodetect the feature reader based on the extension
 if the user does not explicitly provide the input format.
@@ -28,13 +29,13 @@ The initialize function takes an `InputSplit` and initializes a reader that read
 The split is usually a `FileSplit` that identifies all or a part of a file.
 The following implementation mainly initializes an underlying `LineReader` that reads the input
 text file line-by-line.
-
-    @Override
-    public void initialize(InputSplit split, TaskAttemptContext context) throws IOException {
-      lineReader.initialize(split, context);
-      this.immutableFeatures = context.getConfiguration().getBoolean(SpatialInputFormat.ImmutableObjects, false);
-    }
-
+```java
+@Override
+public void initialize(InputSplit split, TaskAttemptContext context) throws IOException {
+  lineReader.initialize(split, context);
+  this.immutableFeatures = context.getConfiguration().getBoolean(SpatialInputFormat.ImmutableObjects, false);
+}
+```
 The flag `immutableFeatures` is important. This flag is automatically set to `true` in Spark or when object reuse
 is not possible. When this flag is set, the method `nextKeyValue` should always create a new key and value
 and should not reuse the objects. If not set, then objects can be reused to improve the performance.
@@ -46,61 +47,61 @@ input and stores it internally to be returned by the two methods `IFeature getCu
 and `IFeature getCurrentValue()`. According to the format of GeoLife files, the following function skips the
 first six lines of the file (header) and then returns one point feature for each consecutive line.
 Once the end-of-file is reached, this method should return false.
-
-    @Override
-    public boolean nextKeyValue() throws IOException {
+```java
+@Override
+public boolean nextKeyValue() throws IOException {
+  if (!lineReader.nextKeyValue())
+    return false;
+  if (lineReader.getCurrentKey().get() == 0) {
+    // Skip the first six lines
+    for (int $i = 0; $i < 6; $i++) {
       if (!lineReader.nextKeyValue())
         return false;
-      if (lineReader.getCurrentKey().get() == 0) {
-        // Skip the first six lines
-        for (int $i = 0; $i < 6; $i++) {
-          if (!lineReader.nextKeyValue())
-            return false;
-        }
-      }
-      if (immutableFeatures || feature == null) {
-        feature = new CSVFeature(new Point(2));
-        featureMBR = new Envelope(2);
-      }
-      Text value = lineReader.getCurrentValue();
-      try {
-        double longitude = Double.parseDouble(CSVFeature.deleteAttribute(value, ',', 1,
-            CSVFeatureReader.DefaultQuoteCharacters));
-        double latitude = Double.parseDouble(CSVFeature.deleteAttribute(value, ',', 0,
-            CSVFeatureReader.DefaultQuoteCharacters));
-        ((Point)feature.getGeometry()).set(longitude, latitude);
-        feature.setFieldSeparator((byte) ',');
-        feature.setFieldValues(value.toString());
-        feature.getGeometry().envelope(featureMBR);
-        return true;
-      } catch (Exception e) {
-        LOG.error(String.format("Error reading object at %d with value '%s'", lineReader.getCurrentKey().get(), value));
-        throw e;
-      }
     }
-
+  }
+  if (immutableFeatures || feature == null) {
+    feature = new CSVFeature(new Point(2));
+    featureMBR = new Envelope(2);
+  }
+  Text value = lineReader.getCurrentValue();
+  try {
+    double longitude = Double.parseDouble(CSVFeature.deleteAttribute(value, ',', 1,
+        CSVFeatureReader.DefaultQuoteCharacters));
+    double latitude = Double.parseDouble(CSVFeature.deleteAttribute(value, ',', 0,
+        CSVFeatureReader.DefaultQuoteCharacters));
+    ((Point)feature.getGeometry()).set(longitude, latitude);
+    feature.setFieldSeparator((byte) ',');
+    feature.setFieldValues(value.toString());
+    feature.getGeometry().envelope(featureMBR);
+    return true;
+  } catch (Exception e) {
+    LOG.error(String.format("Error reading object at %d with value '%s'", lineReader.getCurrentKey().get(), value));
+    throw e;
+  }
+}
+```
 ## 4. Implement the `getCurrentKey` and `getCurrentValue` functions
 
-
-    public Envelope getCurrentKey() { return featureMBR; }
-    public IFeature getCurrentValue() { return feature; }
-
+```java
+public Envelope getCurrentKey() { return featureMBR; }
+public IFeature getCurrentValue() { return feature; }
+```
 
 ## 5. Implement the `close` method
 
 This method just closes the underlying line reader to free up the resources.
-
-    public void close() throws IOException { lineReader.close(); }
-
+```java
+public void close() throws IOException { lineReader.close(); }
+```
 ## 6. Add your new reader to the configuration files
 
 To make your new reader accessible to all Beast functions, including the command-line interface,
 you need to add the full name of your class to the configuration file `beast.xml`
-
-    <Readers>
-      <Reader>edu.ucr.cs.bdlab.beastExamples.GeoLifeReader</Reader>
-    </Readers>
-
+```xml
+<Readers>
+  <Reader>edu.ucr.cs.bdlab.beastExamples.GeoLifeReader</Reader>
+</Readers>
+```
 ## How to use your new writer
 
 Let's say you want to compute the summary of an input file in the new format.
@@ -115,7 +116,7 @@ Let's say the generated JAR file is called `beast-example.jar`.
 Now you can run the following command:
 
 ```shell script
-spark-submit --packages edu.ucr.cs.bdlab:beast-spark:0.5.0-RC1 \
+spark-submit --packages edu.ucr.cs.bdlab:beast-spark:0.5.0 \
     --class edu.ucr.cs.bdlab.sparkOperations.Main beast-example.jar \
     summary 20090504203925.plt iformat:geolife
 ```
@@ -123,7 +124,7 @@ spark-submit --packages edu.ucr.cs.bdlab:beast-spark:0.5.0-RC1 \
 If the input file has the right extension `.plt`, you can also use the auto-detect feature as follows.
 
 ```shell script
-spark-submit --packages edu.ucr.cs.bdlab:beast-spark:0.5.0-RC1 \
+spark-submit --packages edu.ucr.cs.bdlab:beast-spark:0.5.0 \
     --class edu.ucr.cs.bdlab.sparkOperations.Main beast-example.jar \
     summary 20090504203925.plt iformat:*auto*
 ```

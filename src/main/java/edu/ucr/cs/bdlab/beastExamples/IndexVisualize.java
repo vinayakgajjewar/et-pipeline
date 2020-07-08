@@ -85,7 +85,7 @@ public class IndexVisualize implements JCLIOperation {
     }
 
     // Read the features in the input dataset
-    JavaRDD<IFeature> input = SpatialReader.readInput(sc, opts).cache();
+    JavaRDD<IFeature> input = SpatialReader.readInput(sc, opts, opts.getInput(0), opts.get(SpatialInputFormat.InputFormat)).cache();
     // Write the summary
     Summary summary = GeometricSummary.computeForFeaturesJ(input);
     JsonGenerator jsonGenerator = new JsonFactory().createGenerator(System.out);

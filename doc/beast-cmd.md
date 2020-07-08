@@ -8,7 +8,9 @@ that runs Spark operations from the command line.
 
 Add the following line to your `~/.bashrc` and open a new shell window.
 
-    alias beast="spark-submit --packages edu.ucr.cs.bdlab:beast-spark:0.5.0-RC1 --class edu.ucr.cs.bdlab.sparkOperations.Main ."
+```shell script
+alias beast="spark-submit --repositories https://repo.osgeo.org/repository/release/ --packages edu.ucr.cs.bdlab:beast-spark:0.5.0-RC1 --class edu.ucr.cs.bdlab.sparkOperations.Main ."
+```
 
 ## Prerequisites
 
@@ -35,8 +37,9 @@ bash script.
 3. This method allows you to pass additional Spark options to the command.
 For example, the following command sets the driver memory to 16 GB while running the command.
 
-
-    beast --driver-memory 16g summary <input>
+```shell script
+beast --driver-memory 16g summary <input>
+```
 
 4. This script also allows you to run Beast with a custom-built JAR file. It will first look for
 a JAR file in the same directory as the script named `beast-uber-spark*.jar`. If found, it will
@@ -50,7 +53,9 @@ Spark allows you run a main class from any available maven library.
 This is probably the easiest way to run any released version of Beast.
 For example, to run beast version 0.5.0-RC1, you can define the following shorthand (alias).
 
-    alias beast="spark-submit --packages edu.ucr.cs.bdlab:beast-spark:0.5.0-RC1 --class edu.ucr.cs.bdlab.sparkOperations.Main ."
+```shell script
+alias beast="spark-submit --packages edu.ucr.cs.bdlab:beast-spark:0.5.0 --class edu.ucr.cs.bdlab.sparkOperations.Main ."
+```
     
 After that, you can run beast by simply typing `beast`.
 You can also add that line to your `~/.bashrc` or `~/.profile` to make it readily available on startup.
@@ -58,8 +63,10 @@ You can also add that line to your `~/.bashrc` or `~/.profile` to make it readil
 
 *Note*: If you use the above method, you will see the following error every time you run the `beast` command.
 
-    [main] ERROR org.apache.spark.SparkContext  - Failed to add file:/home/davinci/./ to Spark environment
-    java.lang.IllegalArgumentException: Directory /home/davinci/. is not allowed for addJar
+```text
+[main] ERROR org.apache.spark.SparkContext  - Failed to add file:/home/davinci/./ to Spark environment
+java.lang.IllegalArgumentException: Directory /home/davinci/. is not allowed for addJar
+```
  
 This is normal as Spark expects a mandatory parameter for the application to run which we do not have in the case of Beast.
 For now, just ignore this error.

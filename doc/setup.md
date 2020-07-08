@@ -21,7 +21,7 @@ adding the following dependency to your `pom.xml` file.
 <dependency>
   <groupId>edu.ucr.cs.bdlab</groupId>
   <artifactId>beast-spark</artifactId>
-  <version>0.5.0-RC1</version>
+  <version>0.5.0</version>
 </dependency>
 ```
 Instead, you can [first create a new Maven project](https://maven.apache.org/guides/getting-started/index.html#How_do_I_make_my_first_Maven_project)
@@ -32,7 +32,7 @@ you might also want to base it on a stable version of the code.
 ```shell
 git clone https://bitbucket.org/eldawy/beast-examples.git
 cd beast-examples
-git checkout -b mybranch 0.2.0
+git checkout -b mybranch 0.5.0
 ```
 ## Write your code
 
@@ -51,13 +51,13 @@ This will generate a new JAR under `target/` directory.
 If your JAR does not contain a main file or if you want to run one of the standard
 operations in Beast, use the following command.
 ```shell script
-spark-submit --packages edu.ucr.cs.bdlab:beast-spark:0.5.0-RC1 \
+spark-submit --packages edu.ucr.cs.bdlab:beast-spark:0.5.0 \
    --jars target/my-app.jar \
    edu.ucr.cs.bdlab.sparkOperations.Main
 ```
 Instead, if your project contains a main class that you want to run, you should run the following command:
 ```shell script
-spark-submit --packages edu.ucr.cs.bdlab:beast-spark:0.5.0-RC1 \
+spark-submit --packages edu.ucr.cs.bdlab:beast-spark:0.5.0 \
    --jars target/my-app.jar \
    <class name>
 ```

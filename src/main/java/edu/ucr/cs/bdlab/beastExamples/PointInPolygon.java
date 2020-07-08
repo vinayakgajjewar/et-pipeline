@@ -55,8 +55,10 @@ public class PointInPolygon implements JCLIOperation {
   @Override
   public Object run(UserOptions opts, JavaSparkContext sc) throws IOException {
     // Read the input features for the two datasets
-    JavaRDD<IFeature> polygons = SpatialReader.readInput(sc, opts, 0);
-    JavaRDD<IFeature> points = SpatialReader.readInput(sc, opts, 1);
+    opts.setArrayPosition(0);
+    JavaRDD<IFeature> polygons = SpatialReader.readInput(sc, opts, opts.getInput(0), opts.get(SpatialInputFormat.InputFormat));
+    opts.setArrayPosition(0);
+    JavaRDD<IFeature> points = SpatialReader.readInput(sc, opts, opts.getInput(1), opts.get(SpatialInputFormat.InputFormat));
 
     // Compute the spatial join
     JavaPairRDD<IFeature, IFeature> joinsResults = SpatialJoin.spatialJoinBNLJ(polygons, points, SpatialJoinAlgorithms.ESJPredicate.Contains);
