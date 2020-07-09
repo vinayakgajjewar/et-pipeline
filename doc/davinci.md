@@ -5,15 +5,15 @@ This tutorial describes how to visualize data using DaVinci visualization and ac
 ## Prerequisites
 
 * Download the [ZIP code dataset](ftp://ftp2.census.gov/geo/tiger/TIGER2018/ZCTA5/tl_2018_us_zcta510.zip).
-```shell script
+```shell
 wget ftp://ftp2.census.gov/geo/tiger/TIGER2018/ZCTA5/tl_2018_us_zcta510.zip
 ```
 * Setup Spark in local or cluster mode, below is an example command.
-```shell script
+```shell
 curl http://apache.mirrors.hoobly.com/spark/spark-3.0.0/spark-3.0.0-bin-hadoop3.2.tgz | tar -xz
 ```
 * Make the `beast` command ready on your machine [More](beast-cmd.md). The easiest method is to run the following command.
-```shell script
+```shell
 alias beast="spark-submit --packages edu.ucr.cs.bdlab:beast-spark:0.5.0 --class edu.ucr.cs.bdlab.sparkOperations.Main ."
 ```
 ## Steps
@@ -91,7 +91,7 @@ You can also download the entire file back in compressed CSV format by navigatin
 
 ## Complete example
 
-```shell script
+```shell
 # 0. Prerequisites
 wget ftp://ftp2.census.gov/geo/tiger/TIGER2018/ZCTA5/tl_2018_us_zcta510.zip
 curl http://apache.mirrors.hoobly.com/spark/spark-3.0.0/spark-3.0.0-bin-hadoop3.2.tgz | tar -xz

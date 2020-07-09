@@ -50,13 +50,13 @@ This will generate a new JAR under `target/` directory.
 
 If your JAR does not contain a main file or if you want to run one of the standard
 operations in Beast, use the following command.
-```shell script
+```shell
 spark-submit --packages edu.ucr.cs.bdlab:beast-spark:0.5.0 \
    --jars target/my-app.jar \
    edu.ucr.cs.bdlab.sparkOperations.Main
 ```
 Instead, if your project contains a main class that you want to run, you should run the following command:
-```shell script
+```shell
 spark-submit --packages edu.ucr.cs.bdlab:beast-spark:0.5.0 \
    --jars target/my-app.jar \
    <class name>

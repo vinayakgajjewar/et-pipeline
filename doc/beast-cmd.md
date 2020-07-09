@@ -8,7 +8,7 @@ that runs Spark operations from the command line.
 
 Add the following line to your `~/.bashrc` and open a new shell window.
 
-```shell script
+```shell
 alias beast="spark-submit --repositories https://repo.osgeo.org/repository/release/ --packages edu.ucr.cs.bdlab:beast-spark:0.5.0 --class edu.ucr.cs.bdlab.sparkOperations.Main ."
 ```
 
@@ -37,7 +37,7 @@ bash script.
 3. This method allows you to pass additional Spark options to the command.
 For example, the following command sets the driver memory to 16 GB while running the command.
 
-```shell script
+```shell
 beast --driver-memory 16g summary <input>
 ```
 
@@ -53,7 +53,7 @@ Spark allows you run a main class from any available maven library.
 This is probably the easiest way to run any released version of Beast.
 For example, to run beast version 0.5.0-RC1, you can define the following shorthand (alias).
 
-```shell script
+```shell
 alias beast="spark-submit --packages edu.ucr.cs.bdlab:beast-spark:0.5.0 --class edu.ucr.cs.bdlab.sparkOperations.Main ."
 ```
     
