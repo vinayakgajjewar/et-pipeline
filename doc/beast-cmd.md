@@ -9,7 +9,7 @@ that runs Spark operations from the command line.
 Add the following line to your `~/.bashrc` and open a new shell window.
 
 ```shell
-alias beast="spark-submit --repositories https://repo.osgeo.org/repository/release/ --packages edu.ucr.cs.bdlab:beast-spark:0.5.0 --class edu.ucr.cs.bdlab.sparkOperations.Main ."
+alias beast="spark-submit --repositories https://repo.osgeo.org/repository/release/ --packages edu.ucr.cs.bdlab:beast-spark:0.5.0 --exclude-packages javax.media:jai_core --class edu.ucr.cs.bdlab.sparkOperations.Main ."
 ```
 
 ## Prerequisites
@@ -54,7 +54,7 @@ This is probably the easiest way to run any released version of Beast.
 For example, to run beast version 0.5.0-RC1, you can define the following shorthand (alias).
 
 ```shell
-alias beast="spark-submit --packages edu.ucr.cs.bdlab:beast-spark:0.5.0 --class edu.ucr.cs.bdlab.sparkOperations.Main ."
+alias beast="spark-submit --repositories https://repo.osgeo.org/repository/release/ --packages edu.ucr.cs.bdlab:beast-spark:0.5.0 --exclude-packages javax.media:jai_core --class edu.ucr.cs.bdlab.sparkOperations.Main ."
 ```
     
 After that, you can run beast by simply typing `beast`.
@@ -62,14 +62,15 @@ You can also add that line to your `~/.bashrc` or `~/.profile` to make it readil
 
 
 *Note*: If you use the above method, you will see the following error every time you run the `beast` command.
-
 ```text
 [main] ERROR org.apache.spark.SparkContext  - Failed to add file:/home/davinci/./ to Spark environment
 java.lang.IllegalArgumentException: Directory /home/davinci/. is not allowed for addJar
 ```
- 
 This is normal as Spark expects a mandatory parameter for the application to run which we do not have in the case of Beast.
 For now, just ignore this error.
+
+*Note*: Due to a problem with the Maven central repository, the dependency `javax.media:jai_core` cannot be retrieved
+so we exclude it to avoid an error message.
 
 ## Method 3. Based on a JAR file
 

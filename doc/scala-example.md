@@ -113,6 +113,7 @@ Use the following command to run the main class.
 ```shell
 spark-submit --repositories https://repo.osgeo.org/repository/release/ \ 
    --packages edu.ucr.cs.bdlab:beast-spark:0.5.0 \
+   --exclude-packages javax.media:jai_core \
    --jars target/beast-examples-0.5.0.jar \
    edu.ucr.cs.bdlab.beastExamples.ScalaExamples
 ```
