@@ -9,7 +9,7 @@ that runs Spark operations from the command line.
 Add the following line to your `~/.bashrc` and open a new shell window.
 
 ```shell script
-alias beast="spark-submit --repositories https://repo.osgeo.org/repository/release/ --packages edu.ucr.cs.bdlab:beast-spark:0.5.0-RC1 --class edu.ucr.cs.bdlab.sparkOperations.Main ."
+alias beast="spark-submit --repositories https://repo.osgeo.org/repository/release/ --packages edu.ucr.cs.bdlab:beast-spark:0.5.0 --class edu.ucr.cs.bdlab.sparkOperations.Main ."
 ```
 
 ## Prerequisites
