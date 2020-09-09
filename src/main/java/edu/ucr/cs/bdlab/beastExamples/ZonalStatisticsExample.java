@@ -16,7 +16,7 @@
 package edu.ucr.cs.bdlab.beastExamples;
 
 import edu.ucr.cs.bdlab.geolite.IFeature;
-import edu.ucr.cs.bdlab.io.SpatialInputFormat;
+import edu.ucr.cs.bdlab.io.Reprojector;
 import edu.ucr.cs.bdlab.raptor.Collector;
 import edu.ucr.cs.bdlab.raptor.HDF4Reader;
 import edu.ucr.cs.bdlab.raptor.Statistics;
@@ -29,6 +29,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.locationtech.jts.geom.Geometry;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -65,11 +66,17 @@ public class ZonalStatisticsExample {
     // 4. Determine the CRS of the raster data to reproject the vector data
     HDF4Reader raster = new HDF4Reader();
     raster.initialize(rFileSystem, allRasterFiles.get(0), "LST_Day_1km");
-    opts.set(SpatialInputFormat.TargetCRS, raster.getCRS().toWKT());
+    CoordinateReferenceSystem rasterCRS = raster.getCRS();
     raster.close();
 
     // 5. Load the polygons
     JavaRDD<IFeature> polygons = SpatialReader.readInput(sc, opts, "tl_2018_us_state.zip", "shapefile");
+    polygons = polygons.map(f -> {
+      Geometry g = f.getGeometry();
+      g = Reprojector.reprojectGeometry(g, rasterCRS);
+      f.setGeometry(g);
+      return f;
+    });
     List<IFeature> features = polygons.collect();
 
     // 6. Initialize the list of geometries and results array

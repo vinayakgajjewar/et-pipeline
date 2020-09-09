@@ -16,6 +16,7 @@
 package edu.ucr.cs.bdlab.beastExamples;
 
 import edu.ucr.cs.bdlab.geolite.EnvelopeND;
+import edu.ucr.cs.bdlab.geolite.EnvelopeNDLite;
 import edu.ucr.cs.bdlab.geolite.IFeature;
 import edu.ucr.cs.bdlab.io.CSVFeature;
 import edu.ucr.cs.bdlab.io.CSVFeatureReader;
@@ -30,6 +31,7 @@ import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.CoordinateXY;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.LineString;
+import org.locationtech.jts.geom.PrecisionModel;
 
 import java.io.IOException;
 
@@ -53,9 +55,9 @@ public class RoadsReader extends FeatureReader {
   protected CSVFeature feature;
 
   /**The MBR of the current feature*/
-  protected final EnvelopeND featureMBR = new EnvelopeND(2);
+  protected final EnvelopeNDLite featureMBR = new EnvelopeNDLite(2);
 
-  protected GeometryFactory factory = featureMBR.getFactory();
+  protected GeometryFactory factory = new GeometryFactory(new PrecisionModel(PrecisionModel.FLOATING), 4326);
 
   @Override
   public void initialize(InputSplit split, TaskAttemptContext context) throws IOException {
@@ -91,7 +93,7 @@ public class RoadsReader extends FeatureReader {
 
   @Override
   public EnvelopeND getCurrentKey() {
-    return featureMBR;
+    return new EnvelopeND(factory, featureMBR);
   }
 
   @Override

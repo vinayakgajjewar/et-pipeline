@@ -32,7 +32,7 @@ you might also want to base it on a stable version of the code.
 ```shell
 git clone https://bitbucket.org/eldawy/beast-examples.git
 cd beast-examples
-git checkout -b mybranch 0.5.0
+git checkout -b mybranch 0.7.0
 ```
 ## Write your code
 
@@ -51,13 +51,13 @@ This will generate a new JAR under `target/` directory.
 If your JAR does not contain a main file or if you want to run one of the standard
 operations in Beast, use the following command.
 ```shell
-spark-submit --packages edu.ucr.cs.bdlab:beast-spark:0.5.0 \
+spark-submit --packages edu.ucr.cs.bdlab:beast-spark:0.7.0 \
    --jars target/my-app.jar \
    edu.ucr.cs.bdlab.sparkOperations.Main
 ```
 Instead, if your project contains a main class that you want to run, you should run the following command:
 ```shell
-spark-submit --packages edu.ucr.cs.bdlab:beast-spark:0.5.0 \
+spark-submit --packages edu.ucr.cs.bdlab:beast-spark:0.7.0 \
    --jars target/my-app.jar \
    <class name>
 ```

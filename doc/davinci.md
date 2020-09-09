@@ -14,7 +14,7 @@ curl http://apache.mirrors.hoobly.com/spark/spark-3.0.0/spark-3.0.0-bin-hadoop3.
 ```
 * Make the `beast` command ready on your machine [More](beast-cmd.md). The easiest method is to run the following command.
 ```shell
-alias beast="spark-submit --packages edu.ucr.cs.bdlab:beast-spark:0.5.0 --class edu.ucr.cs.bdlab.sparkOperations.Main ."
+alias beast="spark-submit --packages edu.ucr.cs.bdlab:beast-spark:0.7.0 --class edu.ucr.cs.bdlab.sparkOperations.Main ."
 ```
 ## Steps
 
@@ -95,7 +95,7 @@ You can also download the entire file back in compressed CSV format by navigatin
 # 0. Prerequisites
 wget ftp://ftp2.census.gov/geo/tiger/TIGER2018/ZCTA5/tl_2018_us_zcta510.zip
 curl http://apache.mirrors.hoobly.com/spark/spark-3.0.0/spark-3.0.0-bin-hadoop3.2.tgz | tar -xz
-alias beast="spark-submit --packages edu.ucr.cs.bdlab:beast-spark:0.5.0 --class edu.ucr.cs.bdlab.sparkOperations.Main ."
+alias beast="spark-submit --packages edu.ucr.cs.bdlab:beast-spark:0.7.0 --class edu.ucr.cs.bdlab.sparkOperations.Main ."
 
 # 2. Build an index for the ZIP code data
 beast index tl_2018_us_zcta510.zip iformat:shapefile \

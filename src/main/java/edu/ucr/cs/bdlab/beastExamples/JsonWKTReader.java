@@ -31,8 +31,9 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.LineRecordReader;
-import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.PrecisionModel;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
 
@@ -64,14 +65,16 @@ public class JsonWKTReader extends FeatureReader {
   /**The mutable Feature*/
   protected Feature feature;
 
-  /**If the input contains wkt-encoded geometries, this is used to parse them*/
-  protected final WKTReader wktReader = new WKTReader();
-
   /**An optional attributed to filter the geometries in the input file*/
   protected EnvelopeND filterMBR;
 
   /**The underlying JSON parser*/
   protected final JsonFactory jsonFactory = new JsonFactory();
+
+  protected final GeometryFactory geometryFactory = new GeometryFactory(new PrecisionModel(PrecisionModel.FLOATING), 4326);
+
+  /**If the input contains wkt-encoded geometries, this is used to parse them*/
+  protected final WKTReader wktReader = new WKTReader(geometryFactory);
 
   @Override
   public void initialize(InputSplit inputSplit, TaskAttemptContext taskAttemptContext) throws IOException {
@@ -84,7 +87,7 @@ public class JsonWKTReader extends FeatureReader {
       double[] dblParts = new double[parts.length];
       for (int i = 0; i < parts.length; i++)
         dblParts[i] = Double.parseDouble(parts[i]);
-      this.filterMBR = new EnvelopeND(dblParts.length/2, dblParts);
+      this.filterMBR = new EnvelopeND(geometryFactory, dblParts.length/2, dblParts);
     }
   }
 

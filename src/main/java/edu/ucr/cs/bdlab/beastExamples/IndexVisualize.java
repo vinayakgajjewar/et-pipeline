@@ -24,7 +24,6 @@ import edu.ucr.cs.bdlab.geolite.EnvelopeND;
 import edu.ucr.cs.bdlab.geolite.Feature;
 import edu.ucr.cs.bdlab.geolite.IFeature;
 import edu.ucr.cs.bdlab.geolite.PointND;
-import edu.ucr.cs.bdlab.indexing.IndexerParams;
 import edu.ucr.cs.bdlab.indexing.RSGrovePartitioner;
 import edu.ucr.cs.bdlab.indexing.RTreeFeatureWriter;
 import edu.ucr.cs.bdlab.io.FeatureWriter;
@@ -90,7 +89,7 @@ public class IndexVisualize implements JCLIOperation {
     Summary summary = GeometricSummary.computeForFeaturesJ(input);
     JsonGenerator jsonGenerator = new JsonFactory().createGenerator(System.out);
     jsonGenerator.setPrettyPrinter(new DefaultPrettyPrinter());
-    GeometricSummary.writeDatasetSchema(jsonGenerator, summary, input.first());
+    Summary.writeDatasetSchema(jsonGenerator, summary, input.first());
     jsonGenerator.close();
 
     // Reduce geometries to two dimensions to allow geometric plotter to work
@@ -106,15 +105,15 @@ public class IndexVisualize implements JCLIOperation {
     });
 
     // Index the file using R*-Grove as a global index and R-tree as a local index
-    opts.setBoolean(IndexerParams.BalancedPartitioning, true);
-    opts.setBoolean(IndexerParams.DisjointIndex, true);
+    opts.setBoolean(Index.BalancedPartitioning(), true);
+    opts.setBoolean(Index.DisjointIndex(), true);
     opts.set(SpatialOutputFormat.OutputFormat, "rtree");
-    JavaPairRDD<Integer, IFeature> partitionedInput = Index.partitionFeatures(input, RSGrovePartitioner.class, opts);
+    JavaPairRDD<Integer, IFeature> partitionedInput = Index.partitionFeaturesJ(input, RSGrovePartitioner.class, opts);
     opts.setClass(SpatialOutputFormat.FeatureWriterClass, RTreeFeatureWriter.class, FeatureWriter.class);
     Index.saveIndex(partitionedInput, indexOutput, opts);
 
     // Now, build the visualization for the partitioned dataset
-    opts.setBoolean(MultilevelPyramidPlotHelper.IncludeDataTiles, false);
+    opts.setBoolean(MultilevelPlot.IncludeDataTiles(), false);
     // Adjust the input format to read from the R-tree index correctly
     opts.set(SpatialInputFormat.InputFormat, "rtree");
     // Create a full 20-level visualization

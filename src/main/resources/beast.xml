@@ -3,7 +3,6 @@
   <!-- Classes that implement the interface edu.ucr.cs.bdlab.io.FeatureReader
   which are also annotated with class edu.ucr.cs.bdlab.io.FeatureReader.Metadata -->
   <Readers>
-    <Reader>edu.ucr.cs.bdlab.beastExamples.GeoLifeReader</Reader>
     <Reader>edu.ucr.cs.bdlab.beastExamples.RoadsReader</Reader>
     <Reader>edu.ucr.cs.bdlab.beastExamples.JsonWKTReader</Reader>
   </Readers>

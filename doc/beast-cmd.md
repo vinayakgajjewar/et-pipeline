@@ -9,7 +9,7 @@ that runs Spark operations from the command line.
 Add the following line to your `~/.bashrc` and open a new shell window.
 
 ```shell
-alias beast="spark-submit --repositories https://repo.osgeo.org/repository/release/ --packages edu.ucr.cs.bdlab:beast-spark:0.5.0 --exclude-packages javax.media:jai_core --class edu.ucr.cs.bdlab.sparkOperations.Main ."
+alias beast="spark-submit --repositories https://repo.osgeo.org/repository/release/ --packages edu.ucr.cs.bdlab:beast-spark:0.7.0 --exclude-packages javax.media:jai_core --class edu.ucr.cs.bdlab.sparkOperations.Main ."
 ```
 
 ## Prerequisites
@@ -51,7 +51,7 @@ available on the central Maven repository.
 
 Spark allows you run a main class from any available maven library.
 This is probably the easiest way to run any released version of Beast.
-For example, to run beast version 0.5.0-RC1, you can define the following shorthand (alias).
+For example, to run beast version 0.7.0, you can define the following shorthand (alias).
 
 ```shell
 alias beast="spark-submit --repositories https://repo.osgeo.org/repository/release/ --packages edu.ucr.cs.bdlab:beast-spark:0.5.0 --exclude-packages javax.media:jai_core --class edu.ucr.cs.bdlab.sparkOperations.Main ."

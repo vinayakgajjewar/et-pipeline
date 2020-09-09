@@ -64,7 +64,7 @@ public class PointInPolygon implements JCLIOperation {
     JavaPairRDD<IFeature, IFeature> joinsResults = SpatialJoin.spatialJoinBNLJ(polygons, points, SpatialJoinAlgorithms.ESJPredicate.Contains);
 
     // Combine the results into features while removing the polygon geometry and keeping only its attributes
-    JavaRDD<Feature> results = joinsResults.map(pair -> {
+    JavaRDD<IFeature> results = joinsResults.map(pair -> {
       IFeature polygon = pair._1;
       IFeature point = pair._2;
       Feature result = new Feature(point.getGeometry());

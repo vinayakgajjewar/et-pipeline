@@ -2,23 +2,18 @@ package edu.ucr.cs.bdlab.beastExamples;
 
 import edu.ucr.cs.bdlab.davinci.Canvas;
 import edu.ucr.cs.bdlab.davinci.Plotter;
-import edu.ucr.cs.bdlab.geolite.EnvelopeND;
 import edu.ucr.cs.bdlab.geolite.IFeature;
-import edu.ucr.cs.bdlab.geolite.PointND;
 import edu.ucr.cs.bdlab.util.OperationParam;
 import org.apache.hadoop.conf.Configuration;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Envelope;
 
 import javax.imageio.ImageIO;
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.Rectangle;
+import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import java.io.OutputStream;
 import java.util.Map;
 
@@ -49,7 +44,6 @@ public class ClusterPlotter extends Plotter {
 
   @Override
   public boolean plot(Canvas canvasLayer, IFeature shape) {
-    PointND point = new PointND(2);
     Envelope mbr = shape.getGeometry().getEnvelopeInternal();
     Coordinate centroid = shape.getGeometry().getCentroid().getCoordinate();
     ClusterCanvas canvas = (ClusterCanvas) canvasLayer;
@@ -101,12 +95,13 @@ public class ClusterPlotter extends Plotter {
   }
 
   @Override
-  public void write(DataOutput out) throws IOException {
+  public void writeExternal(ObjectOutput out) throws IOException {
     out.writeInt(radius);
   }
 
   @Override
-  public void readFields(DataInput in) throws IOException {
+  public void readExternal(ObjectInput in) throws IOException {
     this.radius = in.readInt();
   }
+
 }

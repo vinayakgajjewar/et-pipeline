@@ -116,7 +116,7 @@ Let's say the generated JAR file is called `beast-example.jar`.
 Now you can run the following command:
 
 ```shell
-spark-submit --packages edu.ucr.cs.bdlab:beast-spark:0.5.0 \
+spark-submit --packages edu.ucr.cs.bdlab:beast-spark:0.7.0 \
     --class edu.ucr.cs.bdlab.sparkOperations.Main beast-example.jar \
     summary 20090504203925.plt iformat:geolife
 ```
@@ -124,7 +124,7 @@ spark-submit --packages edu.ucr.cs.bdlab:beast-spark:0.5.0 \
 If the input file has the right extension `.plt`, you can also use the auto-detect feature as follows.
 
 ```shell
-spark-submit --packages edu.ucr.cs.bdlab:beast-spark:0.5.0 \
+spark-submit --packages edu.ucr.cs.bdlab:beast-spark:0.7.0 \
     --class edu.ucr.cs.bdlab.sparkOperations.Main beast-example.jar \
     summary 20090504203925.plt iformat:*auto*
 ```
