@@ -21,7 +21,7 @@ adding the following dependency to your `pom.xml` file.
 <dependency>
   <groupId>edu.ucr.cs.bdlab</groupId>
   <artifactId>beast-spark</artifactId>
-  <version>0.5.0</version>
+  <version>0.7.0</version>
 </dependency>
 ```
 Instead, you can [first create a new Maven project](https://maven.apache.org/guides/getting-started/index.html#How_do_I_make_my_first_Maven_project)
@@ -53,7 +53,7 @@ operations in Beast, use the following command.
 ```shell
 spark-submit --packages edu.ucr.cs.bdlab:beast-spark:0.7.0 \
    --jars target/my-app.jar \
-   edu.ucr.cs.bdlab.sparkOperations.Main
+   edu.ucr.cs.bdlab.beast.operations.Main
 ```
 Instead, if your project contains a main class that you want to run, you should run the following command:
 ```shell

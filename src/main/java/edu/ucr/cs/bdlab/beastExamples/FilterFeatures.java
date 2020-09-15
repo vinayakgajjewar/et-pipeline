@@ -15,10 +15,10 @@
  */
 package edu.ucr.cs.bdlab.beastExamples;
 
-import edu.ucr.cs.bdlab.geolite.IFeature;
-import edu.ucr.cs.bdlab.io.SpatialInputFormat;
-import edu.ucr.cs.bdlab.sparkOperations.SpatialReader;
-import edu.ucr.cs.bdlab.util.UserOptions;
+import edu.ucr.cs.bdlab.beast.common.BeastOptions;
+import edu.ucr.cs.bdlab.beast.geolite.IFeature;
+import edu.ucr.cs.bdlab.beast.io.SpatialInputFormat;
+import edu.ucr.cs.bdlab.beast.io.SpatialReader;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.locationtech.jts.geom.Envelope;
@@ -38,7 +38,7 @@ public class FilterFeatures {
     try (JavaSparkContext sc = new JavaSparkContext("local[*]", "test")) {
       // Download the input file at
       // https://www.naturalearthdata.com/http//www.naturalearthdata.com/download/10m/cultural/ne_10m_airports.zip
-      UserOptions opts = new UserOptions();
+      BeastOptions opts = new BeastOptions();
       JavaRDD<IFeature> airports = SpatialReader.readInput(sc, opts, "ne_10m_airports.zip", "shapefile");
       System.out.printf("Total number of airports is %d\n", airports.count());
 

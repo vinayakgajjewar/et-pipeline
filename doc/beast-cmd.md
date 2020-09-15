@@ -9,7 +9,7 @@ that runs Spark operations from the command line.
 Add the following line to your `~/.bashrc` and open a new shell window.
 
 ```shell
-alias beast="spark-submit --repositories https://repo.osgeo.org/repository/release/ --packages edu.ucr.cs.bdlab:beast-spark:0.7.0 --exclude-packages javax.media:jai_core --class edu.ucr.cs.bdlab.sparkOperations.Main ."
+alias beast="spark-submit --repositories https://repo.osgeo.org/repository/release/ --packages edu.ucr.cs.bdlab:beast-spark:0.7.0 --exclude-packages javax.media:jai_core --class edu.ucr.cs.bdlab.beast.operations.Main ."
 ```
 
 ## Prerequisites
@@ -36,11 +36,9 @@ bash script.
 
 3. This method allows you to pass additional Spark options to the command.
 For example, the following command sets the driver memory to 16 GB while running the command.
-
 ```shell
 beast --driver-memory 16g summary <input>
 ```
-
 4. This script also allows you to run Beast with a custom-built JAR file. It will first look for
 a JAR file in the same directory as the script named `beast-uber-spark*.jar`. If found, it will
 be used as the main JAR file. If not, it will use the recent version of
@@ -54,7 +52,7 @@ This is probably the easiest way to run any released version of Beast.
 For example, to run beast version 0.7.0, you can define the following shorthand (alias).
 
 ```shell
-alias beast="spark-submit --repositories https://repo.osgeo.org/repository/release/ --packages edu.ucr.cs.bdlab:beast-spark:0.5.0 --exclude-packages javax.media:jai_core --class edu.ucr.cs.bdlab.sparkOperations.Main ."
+alias beast="spark-submit --repositories https://repo.osgeo.org/repository/release/ --packages edu.ucr.cs.bdlab:beast-spark:0.7.0 --exclude-packages javax.media:jai_core --class edu.ucr.cs.bdlab.beast.operations.Main ."
 ```
     
 After that, you can run beast by simply typing `beast`.

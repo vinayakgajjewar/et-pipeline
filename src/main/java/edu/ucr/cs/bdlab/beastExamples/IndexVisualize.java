@@ -18,26 +18,27 @@ package edu.ucr.cs.bdlab.beastExamples;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
+import edu.ucr.cs.bdlab.beast.common.BeastOptions;
+import edu.ucr.cs.bdlab.beast.common.JCLIOperation;
+import edu.ucr.cs.bdlab.beast.geolite.EnvelopeND;
+import edu.ucr.cs.bdlab.beast.geolite.Feature;
+import edu.ucr.cs.bdlab.beast.geolite.IFeature;
+import edu.ucr.cs.bdlab.beast.geolite.PointND;
+import edu.ucr.cs.bdlab.beast.indexing.IndexHelper;
+import edu.ucr.cs.bdlab.beast.indexing.RSGrovePartitioner;
+import edu.ucr.cs.bdlab.beast.indexing.RTreeFeatureWriter;
+import edu.ucr.cs.bdlab.beast.io.FeatureWriter;
+import edu.ucr.cs.bdlab.beast.io.SpatialInputFormat;
+import edu.ucr.cs.bdlab.beast.io.SpatialOutputFormat;
+import edu.ucr.cs.bdlab.beast.io.SpatialReader;
+import edu.ucr.cs.bdlab.beast.operations.FeatureWriterSizeFunction;
+import edu.ucr.cs.bdlab.beast.synopses.Summary;
+import edu.ucr.cs.bdlab.beast.util.OperationMetadata;
+import edu.ucr.cs.bdlab.beast.util.OperationParam;
 import edu.ucr.cs.bdlab.davinci.GeometricPlotter;
+import edu.ucr.cs.bdlab.davinci.MultilevelPlot;
 import edu.ucr.cs.bdlab.davinci.MultilevelPyramidPlotHelper;
-import edu.ucr.cs.bdlab.geolite.EnvelopeND;
-import edu.ucr.cs.bdlab.geolite.Feature;
-import edu.ucr.cs.bdlab.geolite.IFeature;
-import edu.ucr.cs.bdlab.geolite.PointND;
-import edu.ucr.cs.bdlab.indexing.RSGrovePartitioner;
-import edu.ucr.cs.bdlab.indexing.RTreeFeatureWriter;
-import edu.ucr.cs.bdlab.io.FeatureWriter;
-import edu.ucr.cs.bdlab.io.SpatialInputFormat;
-import edu.ucr.cs.bdlab.io.SpatialOutputFormat;
-import edu.ucr.cs.bdlab.sparkOperations.GeometricSummary;
-import edu.ucr.cs.bdlab.sparkOperations.Index;
-import edu.ucr.cs.bdlab.sparkOperations.JCLIOperation;
-import edu.ucr.cs.bdlab.sparkOperations.MultilevelPlot;
-import edu.ucr.cs.bdlab.sparkOperations.SpatialReader;
-import edu.ucr.cs.bdlab.stsynopses.Summary;
-import edu.ucr.cs.bdlab.util.OperationMetadata;
-import edu.ucr.cs.bdlab.util.OperationParam;
-import edu.ucr.cs.bdlab.util.UserOptions;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.spark.api.java.JavaPairRDD;
@@ -66,30 +67,31 @@ public class IndexVisualize implements JCLIOperation {
   public static final String OverwriteOutput = "overwrite";
 
   @Override
-  public Object run(UserOptions opts, JavaSparkContext sc) throws IOException {
+  public Object run(BeastOptions opts, String[] inputs, String[] outputs, JavaSparkContext sc) throws IOException {
     String indexOutput, plotOutput;
-    plotOutput = opts.getNumOutputs() == 2? opts.getOutputs()[1] : opts.getInput()+"_plot";
-    indexOutput = opts.getNumOutputs() >= 1? opts.getOutputs()[0] : opts.getInput()+"_index";
+    plotOutput = inputs.length == 2? outputs[1] : inputs[0]+"_plot";
+    indexOutput = outputs.length >= 1? outputs[0] : inputs[0]+"_index";
     boolean overwrite = opts.getBoolean(OverwriteOutput, false);
+    Configuration conf = opts.loadIntoHadoopConf(sc.hadoopConfiguration());
 
     // Overwrite the output if it already exists
     if (overwrite) {
       Path path = new Path(plotOutput);
-      FileSystem fileSystem = path.getFileSystem(opts);
+      FileSystem fileSystem = path.getFileSystem(conf);
       fileSystem.delete(path, true);
 
       path = new Path(indexOutput);
-      fileSystem = path.getFileSystem(opts);
+      fileSystem = path.getFileSystem(conf);
       fileSystem.delete(path, true);
     }
 
     // Read the features in the input dataset
-    JavaRDD<IFeature> input = SpatialReader.readInput(sc, opts, opts.getInput(0), opts.get(SpatialInputFormat.InputFormat)).cache();
+    JavaRDD<IFeature> input = SpatialReader.readInput(sc, opts, inputs[0], opts.getString(SpatialInputFormat.InputFormat)).cache();
     // Write the summary
-    Summary summary = GeometricSummary.computeForFeaturesJ(input);
+    Summary summary = Summary.computeForFeatures(input);
     JsonGenerator jsonGenerator = new JsonFactory().createGenerator(System.out);
     jsonGenerator.setPrettyPrinter(new DefaultPrettyPrinter());
-    Summary.writeDatasetSchema(jsonGenerator, summary, input.first());
+    Summary.writeSummaryWithSchema(jsonGenerator, summary, input.first());
     jsonGenerator.close();
 
     // Reduce geometries to two dimensions to allow geometric plotter to work
@@ -105,12 +107,13 @@ public class IndexVisualize implements JCLIOperation {
     });
 
     // Index the file using R*-Grove as a global index and R-tree as a local index
-    opts.setBoolean(Index.BalancedPartitioning(), true);
-    opts.setBoolean(Index.DisjointIndex(), true);
+    opts.setBoolean(IndexHelper.BalancedPartitioning(), true);
+    opts.setBoolean(IndexHelper.DisjointIndex(), true);
     opts.set(SpatialOutputFormat.OutputFormat, "rtree");
-    JavaPairRDD<Integer, IFeature> partitionedInput = Index.partitionFeaturesJ(input, RSGrovePartitioner.class, opts);
+    JavaPairRDD<Integer, IFeature> partitionedInput = IndexHelper.partitionFeatures(input, RSGrovePartitioner.class,
+        new FeatureWriterSizeFunction(opts), opts);
     opts.setClass(SpatialOutputFormat.FeatureWriterClass, RTreeFeatureWriter.class, FeatureWriter.class);
-    Index.saveIndex(partitionedInput, indexOutput, opts);
+    IndexHelper.saveIndex(partitionedInput, indexOutput, opts);
 
     // Now, build the visualization for the partitioned dataset
     opts.setBoolean(MultilevelPlot.IncludeDataTiles(), false);

@@ -1,9 +1,10 @@
 package edu.ucr.cs.bdlab.beastExamples;
 
+import edu.ucr.cs.bdlab.beast.common.BeastOptions;
+import edu.ucr.cs.bdlab.beast.geolite.IFeature;
+import edu.ucr.cs.bdlab.beast.util.OperationParam;
 import edu.ucr.cs.bdlab.davinci.Canvas;
 import edu.ucr.cs.bdlab.davinci.Plotter;
-import edu.ucr.cs.bdlab.geolite.IFeature;
-import edu.ucr.cs.bdlab.util.OperationParam;
 import org.apache.hadoop.conf.Configuration;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Envelope;
@@ -32,7 +33,7 @@ public class ClusterPlotter extends Plotter {
   private int radius;
 
   @Override
-  public void setup(Configuration clo) {
+  public void setup(BeastOptions clo) {
     super.setup(clo);
     this.radius = clo.getInt(Radius, 50);
   }

@@ -15,14 +15,15 @@
  */
 package edu.ucr.cs.bdlab.beastExamples;
 
-import edu.ucr.cs.bdlab.geolite.IFeature;
-import edu.ucr.cs.bdlab.io.Reprojector;
+import edu.ucr.cs.bdlab.beast.common.BeastOptions;
+import edu.ucr.cs.bdlab.beast.geolite.IFeature;
+import edu.ucr.cs.bdlab.beast.cg.Reprojector;
 import edu.ucr.cs.bdlab.raptor.Collector;
 import edu.ucr.cs.bdlab.raptor.HDF4Reader;
 import edu.ucr.cs.bdlab.raptor.Statistics;
 import edu.ucr.cs.bdlab.raptor.ZonalStatistics;
-import edu.ucr.cs.bdlab.sparkOperations.SpatialReader;
-import edu.ucr.cs.bdlab.util.UserOptions;
+import edu.ucr.cs.bdlab.beast.io.SpatialReader;
+import edu.ucr.cs.bdlab.raptor.ZonalStatisticsCore;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -45,13 +46,13 @@ public class ZonalStatisticsExample {
   public static void main(String[] args) throws IOException {
     // 1. Create a default SparkContext
     JavaSparkContext sc = new JavaSparkContext("local[*]", "test");
-    UserOptions opts = new UserOptions();
+    BeastOptions opts = new BeastOptions();
 
     // 2. Locate all dates for the raster data
     String startDate = "2018.01.01";
     String endDate = "2018.01.03";
     Path rasterPath = new Path("raster");
-    FileSystem rFileSystem = rasterPath.getFileSystem(opts);
+    FileSystem rFileSystem = rasterPath.getFileSystem(opts.loadIntoHadoopConf(sc.hadoopConfiguration()));
     FileStatus[] matchingDates = rFileSystem.listStatus
             (rasterPath, HDF4Reader.createDateFilter(startDate, endDate));
 
@@ -91,7 +92,7 @@ public class ZonalStatisticsExample {
     // 7. Run the zonal statistics operation
     for (Path rasterFile : allRasterFiles) {
       raster.initialize(rFileSystem, rasterFile, "LST_Day_1km");
-      Collector[] stats = ZonalStatistics.computeZonalStatisticsScanline(raster, geometries, Statistics.class);
+      Collector[] stats = ZonalStatisticsCore.computeZonalStatisticsScanline(raster, geometries, Statistics.class);
       // Merge the results
       for (int i = 0; i < stats.length; i++) {
         if (stats[i] != null)

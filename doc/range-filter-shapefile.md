@@ -14,7 +14,7 @@ on a rectangular range.
 ### 1. Create a default SparkContext
 ```java
 JavaSparkContext sc = new JavaSparkContext("local[*]", "test");
-UserOptions opts = new UserOptions();
+BeastOptions opts = new BeastOptions();
 ```
 ### 2. Load features from a Shapefile
 
@@ -77,7 +77,7 @@ that you can run.
    public static void main(String[] args) {
      // 1. Create a default SparkContext
      try (JavaSparkContext sc = new JavaSparkContext("local[*]", "test")) {
-       UserOptions opts = new UserOptions();
+       BeastOptions opts = new BeastOptions();
        // 2. Load features from a Shapefile
        JavaRDD<IFeature> airports = SpatialReader.readInput(sc, opts, "ne_10m_airports.zip", "shapefile");
        System.out.printf("Total number of airports is %d\n", airports.count());

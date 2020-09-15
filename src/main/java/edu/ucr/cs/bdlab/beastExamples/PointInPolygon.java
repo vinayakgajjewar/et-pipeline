@@ -15,18 +15,18 @@
  */
 package edu.ucr.cs.bdlab.beastExamples;
 
-import edu.ucr.cs.bdlab.cg.SpatialJoinAlgorithms;
-import edu.ucr.cs.bdlab.geolite.Feature;
-import edu.ucr.cs.bdlab.geolite.IFeature;
-import edu.ucr.cs.bdlab.io.CSVFeatureWriter;
-import edu.ucr.cs.bdlab.io.SpatialInputFormat;
-import edu.ucr.cs.bdlab.sparkOperations.JCLIOperation;
-import edu.ucr.cs.bdlab.sparkOperations.SpatialJoin;
-import edu.ucr.cs.bdlab.sparkOperations.SpatialReader;
-import edu.ucr.cs.bdlab.sparkOperations.SpatialWriter;
-import edu.ucr.cs.bdlab.util.OperationMetadata;
-import edu.ucr.cs.bdlab.util.OperationParam;
-import edu.ucr.cs.bdlab.util.UserOptions;
+import edu.ucr.cs.bdlab.beast.cg.SpatialJoinAlgorithms;
+import edu.ucr.cs.bdlab.beast.common.BeastOptions;
+import edu.ucr.cs.bdlab.beast.common.JCLIOperation;
+import edu.ucr.cs.bdlab.beast.geolite.Feature;
+import edu.ucr.cs.bdlab.beast.geolite.IFeature;
+import edu.ucr.cs.bdlab.beast.io.CSVFeatureWriter;
+import edu.ucr.cs.bdlab.beast.io.SpatialInputFormat;
+import edu.ucr.cs.bdlab.beast.operations.SpatialJoin;
+import edu.ucr.cs.bdlab.beast.io.SpatialReader;
+import edu.ucr.cs.bdlab.beast.io.SpatialWriter;
+import edu.ucr.cs.bdlab.beast.util.OperationMetadata;
+import edu.ucr.cs.bdlab.beast.util.OperationParam;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.spark.api.java.JavaPairRDD;
@@ -53,12 +53,12 @@ public class PointInPolygon implements JCLIOperation {
   public static final String OverwriteOutput = "overwrite";
 
   @Override
-  public Object run(UserOptions opts, JavaSparkContext sc) throws IOException {
+  public Object run(BeastOptions opts, String[] inputs, String[] outputs, JavaSparkContext sc) throws IOException {
     // Read the input features for the two datasets
-    opts.setArrayPosition(0);
-    JavaRDD<IFeature> polygons = SpatialReader.readInput(sc, opts, opts.getInput(0), opts.get(SpatialInputFormat.InputFormat));
-    opts.setArrayPosition(0);
-    JavaRDD<IFeature> points = SpatialReader.readInput(sc, opts, opts.getInput(1), opts.get(SpatialInputFormat.InputFormat));
+    BeastOptions opts0 = opts.retainIndex(0);
+    JavaRDD<IFeature> polygons = SpatialReader.readInput(sc, opts0, inputs[0], opts0.getString(SpatialInputFormat.InputFormat));
+    BeastOptions opts1 = opts.retainIndex(1);
+    JavaRDD<IFeature> points = SpatialReader.readInput(sc, opts1, inputs[1], opts1.getString(SpatialInputFormat.InputFormat));
 
     // Compute the spatial join
     JavaPairRDD<IFeature, IFeature> joinsResults = SpatialJoin.spatialJoinBNLJ(polygons, points, SpatialJoinAlgorithms.ESJPredicate.Contains);
@@ -81,12 +81,12 @@ public class PointInPolygon implements JCLIOperation {
     String oFormat = String.format("wkt(%d)", numPolygonAttributes);
     opts.set(CSVFeatureWriter.FieldSeparator, ";");
     if (opts.getBoolean(OverwriteOutput, false)) {
-      Path outPath = new Path(opts.getOutput());
-      FileSystem fileSystem = outPath.getFileSystem(opts);
+      Path outPath = new Path(outputs[0]);
+      FileSystem fileSystem = outPath.getFileSystem(opts.loadIntoHadoopConf(sc.hadoopConfiguration()));
       if (fileSystem.exists(outPath))
         fileSystem.delete(outPath, true);
     }
-    SpatialWriter.saveFeatures(results, oFormat, opts.getOutput(), opts);
+    SpatialWriter.saveFeatures(results, oFormat, outputs[0], opts);
     return null;
   }
 }

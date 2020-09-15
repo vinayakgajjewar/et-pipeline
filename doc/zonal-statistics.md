@@ -24,7 +24,7 @@ For example, it computes the average temperature for each state.
 Initialize the Spark context to load the polygons.
 ```java
 JavaSparkContext sc = new JavaSparkContext("local[*]", "test");
-UserOptions opts = new UserOptions();
+BeastOptions opts = new BeastOptions();
 ```
 
 ### 2. Locate all dates for the raster data
@@ -144,20 +144,22 @@ The entire code is shown below.
  */
 package edu.ucr.cs.bdlab.beastExamples;
 
-import edu.ucr.cs.bdlab.geolite.IFeature;
-import edu.ucr.cs.bdlab.geolite.IGeometry;
-import edu.ucr.cs.bdlab.io.SpatialInputFormat;
-import edu.ucr.cs.bdlab.raptor.Collector;
-import edu.ucr.cs.bdlab.raptor.HDF4Reader;
-import edu.ucr.cs.bdlab.raptor.Statistics;
-import edu.ucr.cs.bdlab.raptor.ZonalStatistics;
-import edu.ucr.cs.bdlab.sparkOperations.SpatialReader;
-import edu.ucr.cs.bdlab.util.UserOptions;
+import edu.ucr.cs.bdlab.beast.common.BeastOptions;
+import edu.ucr.cs.bdlab.beast.geolite.IFeature;
+import edu.ucr.cs.bdlab.beast.cg.Reprojector;
+import edu.ucr.cs.bdlab.beast.raptor.Collector;
+import edu.ucr.cs.bdlab.beast.raptor.HDF4Reader;
+import edu.ucr.cs.bdlab.beast.raptor.Statistics;
+import edu.ucr.cs.bdlab.beast.raptor.ZonalStatistics;
+import edu.ucr.cs.bdlab.beast.io.SpatialReader;
+import edu.ucr.cs.bdlab.beast.raptor.ZonalStatisticsCore;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
+import org.locationtech.jts.geom.Geometry;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -173,13 +175,13 @@ public class ZonalStatisticsExample {
   public static void main(String[] args) throws IOException {
     // 1. Create a default SparkContext
     JavaSparkContext sc = new JavaSparkContext("local[*]", "test");
-    UserOptions opts = new UserOptions();
+    BeastOptions opts = new BeastOptions();
 
     // 2. Locate all dates for the raster data
     String startDate = "2018.01.01";
     String endDate = "2018.01.03";
     Path rasterPath = new Path("raster");
-    FileSystem rFileSystem = rasterPath.getFileSystem(opts);
+    FileSystem rFileSystem = rasterPath.getFileSystem(opts.loadIntoHadoopConf(sc.hadoopConfiguration()));
     FileStatus[] matchingDates = rFileSystem.listStatus
             (rasterPath, HDF4Reader.createDateFilter(startDate, endDate));
 
@@ -194,15 +196,21 @@ public class ZonalStatisticsExample {
     // 4. Determine the CRS of the raster data to reproject the vector data
     HDF4Reader raster = new HDF4Reader();
     raster.initialize(rFileSystem, allRasterFiles.get(0), "LST_Day_1km");
-    opts.set(SpatialInputFormat.TargetCRS, raster.getCRS().toWKT());
+    CoordinateReferenceSystem rasterCRS = raster.getCRS();
     raster.close();
 
     // 5. Load the polygons
     JavaRDD<IFeature> polygons = SpatialReader.readInput(sc, opts, "tl_2018_us_state.zip", "shapefile");
+    polygons = polygons.map(f -> {
+      Geometry g = f.getGeometry();
+      g = Reprojector.reprojectGeometry(g, rasterCRS);
+      f.setGeometry(g);
+      return f;
+    });
     List<IFeature> features = polygons.collect();
 
     // 6. Initialize the list of geometries and results array
-    IGeometry[] geometries = new IGeometry[features.size()];
+    Geometry[] geometries = new Geometry[features.size()];
     Statistics[] finalResults = new Statistics[features.size()];
     for (int i = 0; i < features.size(); i++) {
       geometries[i] = features.get(i).getGeometry();
@@ -213,7 +221,7 @@ public class ZonalStatisticsExample {
     // 7. Run the zonal statistics operation
     for (Path rasterFile : allRasterFiles) {
       raster.initialize(rFileSystem, rasterFile, "LST_Day_1km");
-      Collector[] stats = ZonalStatistics.computeZonalStatisticsScanline(raster, geometries, Statistics.class);
+      Collector[] stats = ZonalStatisticsCore.computeZonalStatisticsScanline(raster, geometries, Statistics.class);
       // Merge the results
       for (int i = 0; i < stats.length; i++) {
         if (stats[i] != null)
@@ -236,4 +244,5 @@ public class ZonalStatisticsExample {
     sc.close();
   }
 }
+
 ```

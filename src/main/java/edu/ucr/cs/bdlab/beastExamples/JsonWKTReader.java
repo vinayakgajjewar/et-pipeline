@@ -18,12 +18,12 @@ package edu.ucr.cs.bdlab.beastExamples;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
-import edu.ucr.cs.bdlab.geolite.EnvelopeND;
-import edu.ucr.cs.bdlab.geolite.Feature;
-import edu.ucr.cs.bdlab.geolite.IFeature;
-import edu.ucr.cs.bdlab.io.FeatureReader;
-import edu.ucr.cs.bdlab.io.SpatialInputFormat;
-import edu.ucr.cs.bdlab.util.OperationParam;
+import edu.ucr.cs.bdlab.beast.geolite.EnvelopeND;
+import edu.ucr.cs.bdlab.beast.geolite.Feature;
+import edu.ucr.cs.bdlab.beast.geolite.IFeature;
+import edu.ucr.cs.bdlab.beast.io.FeatureReader;
+import edu.ucr.cs.bdlab.beast.io.SpatialInputFormat;
+import edu.ucr.cs.bdlab.beast.util.OperationParam;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
@@ -71,7 +71,7 @@ public class JsonWKTReader extends FeatureReader {
   /**The underlying JSON parser*/
   protected final JsonFactory jsonFactory = new JsonFactory();
 
-  protected final GeometryFactory geometryFactory = new GeometryFactory(new PrecisionModel(PrecisionModel.FLOATING), 4326);
+  protected final GeometryFactory geometryFactory = FeatureReader.DefaultGeometryFactory;
 
   /**If the input contains wkt-encoded geometries, this is used to parse them*/
   protected final WKTReader wktReader = new WKTReader(geometryFactory);

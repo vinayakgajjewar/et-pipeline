@@ -15,12 +15,12 @@
  */
 package edu.ucr.cs.bdlab.beastExamples;
 
-import edu.ucr.cs.bdlab.geolite.EnvelopeND;
-import edu.ucr.cs.bdlab.geolite.EnvelopeNDLite;
-import edu.ucr.cs.bdlab.geolite.IFeature;
-import edu.ucr.cs.bdlab.io.CSVFeature;
-import edu.ucr.cs.bdlab.io.CSVFeatureReader;
-import edu.ucr.cs.bdlab.io.FeatureReader;
+import edu.ucr.cs.bdlab.beast.geolite.EnvelopeND;
+import edu.ucr.cs.bdlab.beast.geolite.EnvelopeNDLite;
+import edu.ucr.cs.bdlab.beast.geolite.IFeature;
+import edu.ucr.cs.bdlab.beast.io.CSVFeature;
+import edu.ucr.cs.bdlab.beast.io.CSVFeatureReader;
+import edu.ucr.cs.bdlab.beast.io.FeatureReader;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.io.Text;

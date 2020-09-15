@@ -21,7 +21,7 @@ adding the following dependency to your `pom.xml` file.
 <dependency>
   <groupId>edu.ucr.cs.bdlab</groupId>
   <artifactId>beast-spark</artifactId>
-  <version>0.5.0</version>
+  <version>0.7.0</version>
 </dependency>
 ```
 Instead, you can [first create a new Maven project](https://maven.apache.org/guides/getting-started/index.html#How_do_I_make_my_first_Maven_project)
@@ -56,7 +56,7 @@ if (!conf.contains("spark.master"))
 
 ### 2B. Import Beast features
 ```scala
-import edu.ucr.cs.bdlab.sparkOperations._
+import edu.ucr.cs.bdlab.beast._
 ```
 
 ### 2C. Load some spatial datasets
@@ -70,7 +70,7 @@ val points = sc.geojsonFile("Tweets_index.geojson")
 
 ### 2D. Perform a spatial filter (range query)
 ```scala
-val range = new EnvelopeND(2, -117.337182, 33.622048, -117.241395, 33.72865)
+val range = new EnvelopeNDLite(2, -117.337182, 33.622048, -117.241395, 33.72865)
 val matchedPolygons: RDD[IFeature] = polygons.rangeQuery(range)
 val matchedPoints: RDD[IFeature] = points.rangeQuery(range)
 ```

@@ -38,7 +38,7 @@ Here is an explanation for the parameters.
 
 After the command is finished, you might see the following log message.
 
-    [main] INFO  edu.ucr.cs.bdlab.sparkOperations.Main$  - The operation index finished in 32.781363 seconds
+    [main] INFO  edu.ucr.cs.bdlab.beast.operations.Main$  - The operation index finished in 32.781363 seconds
 
 ### 3. Build a multilevel visualization index
 
@@ -63,7 +63,7 @@ Here is an explanation for the parameters.
 
 You might see the following line in the log after the command is successful.
 
-    105862 [main] INFO  edu.ucr.cs.bdlab.sparkOperations.Main$  - The operation mplot finished in 104.167906 seconds
+    105862 [main] INFO  edu.ucr.cs.bdlab.beast.operations.Main$  - The operation mplot finished in 104.167906 seconds
 
 ### 4. Start the visualization server
 
@@ -95,7 +95,7 @@ You can also download the entire file back in compressed CSV format by navigatin
 # 0. Prerequisites
 wget ftp://ftp2.census.gov/geo/tiger/TIGER2018/ZCTA5/tl_2018_us_zcta510.zip
 curl http://apache.mirrors.hoobly.com/spark/spark-3.0.0/spark-3.0.0-bin-hadoop3.2.tgz | tar -xz
-alias beast="spark-submit --packages edu.ucr.cs.bdlab:beast-spark:0.7.0 --class edu.ucr.cs.bdlab.sparkOperations.Main ."
+alias beast="spark-submit --packages edu.ucr.cs.bdlab:beast-spark:0.7.0 --class edu.ucr.cs.bdlab.beast.operations.Main ."
 
 # 2. Build an index for the ZIP code data
 beast index tl_2018_us_zcta510.zip iformat:shapefile \
