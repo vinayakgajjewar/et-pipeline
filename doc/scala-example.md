@@ -21,7 +21,7 @@ adding the following dependency to your `pom.xml` file.
 <dependency>
   <groupId>edu.ucr.cs.bdlab</groupId>
   <artifactId>beast-spark</artifactId>
-  <version>0.7.0</version>
+  <version>0.8.0-RC1</version>
 </dependency>
 ```
 Instead, you can [first create a new Maven project](https://maven.apache.org/guides/getting-started/index.html#How_do_I_make_my_first_Maven_project)
@@ -112,9 +112,9 @@ This will generate a new JAR under `target/` directory.
 Use the following command to run the main class.
 ```shell
 spark-submit --repositories https://repo.osgeo.org/repository/release/ \ 
-   --packages edu.ucr.cs.bdlab:beast-spark:0.7.0 \
+   --packages edu.ucr.cs.bdlab:beast-spark:0.8.0-RC1 \
    --exclude-packages javax.media:jai_core \
-   --jars target/beast-examples-0.7.0.jar \
+   --jars target/beast-examples-0.8.0-RC1.jar \
    edu.ucr.cs.bdlab.beastExamples.ScalaExamples
 ```
 PS: Make sure that the input files are accessible in the working directory.
