@@ -17,8 +17,8 @@ package edu.ucr.cs.bdlab.beastExamples;
 
 import edu.ucr.cs.bdlab.beast.geolite.EnvelopeND;
 import edu.ucr.cs.bdlab.beast.geolite.EnvelopeNDLite;
+import edu.ucr.cs.bdlab.beast.geolite.Feature;
 import edu.ucr.cs.bdlab.beast.geolite.IFeature;
-import edu.ucr.cs.bdlab.beast.io.CSVFeature;
 import edu.ucr.cs.bdlab.beast.io.CSVFeatureReader;
 import edu.ucr.cs.bdlab.beast.io.FeatureReader;
 import org.apache.commons.logging.Log;
@@ -52,7 +52,7 @@ public class RoadsReader extends FeatureReader {
   protected final LineRecordReader lineReader = new LineRecordReader();
 
   /**The returned feature*/
-  protected CSVFeature feature;
+  protected Feature feature;
 
   /**The MBR of the current feature*/
   protected final EnvelopeNDLite featureMBR = new EnvelopeNDLite(2);
@@ -70,18 +70,19 @@ public class RoadsReader extends FeatureReader {
       return false;
     Text value = lineReader.getCurrentValue();
     try {
-      double x1 = Double.parseDouble(CSVFeature.deleteAttribute(value, ',', 2, CSVFeatureReader.DefaultQuoteCharacters));
-      double y1 = Double.parseDouble(CSVFeature.deleteAttribute(value, ',', 2, CSVFeatureReader.DefaultQuoteCharacters));
-      double x2 = Double.parseDouble(CSVFeature.deleteAttribute(value, ',', 3, CSVFeatureReader.DefaultQuoteCharacters));
-      double y2 = Double.parseDouble(CSVFeature.deleteAttribute(value, ',', 3, CSVFeatureReader.DefaultQuoteCharacters));
+      double x1 = Double.parseDouble(CSVFeatureReader.deleteAttribute(value, ',', 2, CSVFeatureReader.DefaultQuoteCharacters));
+      double y1 = Double.parseDouble(CSVFeatureReader.deleteAttribute(value, ',', 2, CSVFeatureReader.DefaultQuoteCharacters));
+      double x2 = Double.parseDouble(CSVFeatureReader.deleteAttribute(value, ',', 3, CSVFeatureReader.DefaultQuoteCharacters));
+      double y2 = Double.parseDouble(CSVFeatureReader.deleteAttribute(value, ',', 3, CSVFeatureReader.DefaultQuoteCharacters));
       Coordinate[] coordinates = {
               new CoordinateXY(x1, y1),
               new CoordinateXY(x2, y2)
       };
       LineString lineString = factory.createLineString(coordinates);
-      feature = new CSVFeature(lineString);
-      feature.setFieldSeparator((byte) ',');
-      feature.setFieldValues(value.toString());
+      feature = new Feature(lineString);
+      int i = 0;
+      while (value.getLength() > 0)
+        feature.appendAttribute("attr"+i, CSVFeatureReader.deleteAttribute(value, ',', 0, CSVFeatureReader.DefaultQuoteCharacters));
       featureMBR.setEmpty();
       featureMBR.merge(feature.getGeometry());
       return true;

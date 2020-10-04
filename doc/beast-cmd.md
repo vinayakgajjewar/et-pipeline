@@ -52,7 +52,7 @@ This is probably the easiest way to run any released version of Beast.
 For example, to run beast version 0.7.0, you can define the following shorthand (alias).
 
 ```shell
-alias beast="spark-submit --repositories https://repo.osgeo.org/repository/release/ --packages edu.ucr.cs.bdlab:beast-spark:0.7.0 --exclude-packages javax.media:jai_core --class edu.ucr.cs.bdlab.beast.operations.Main ."
+alias beast="spark-submit --repositories https://repo.osgeo.org/repository/release/ --packages edu.ucr.cs.bdlab:beast-spark:0.8.2 --exclude-packages javax.media:jai_core --class edu.ucr.cs.bdlab.beast.operations.Main ."
 ```
     
 After that, you can run beast by simply typing `beast`.

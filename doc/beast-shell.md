@@ -37,7 +37,7 @@ If you have a packaged JAR file that contains Beast and all its dependencies, i.
 you can use it with the Spark shell using the following command.
 
 ```shell
-spark-shell --jars beast-uber-spark-0.7.1-SNAPSHOT.jar
+spark-shell --jars beast-uber-spark-0.8.2.jar
 ```
 Again, you should start with the following import to access the Scala shortcuts.
 ```scala
@@ -58,7 +58,7 @@ echo "import edu.ucr.cs.bdlab.beast._" > $HOME/beast-init.scala
 2. Edit your `beast-shell` alias to look like the following.
 
 ```shell
-alias beast-shell="spark-shell --repositories https://repo.osgeo.org/repository/release/ --packages edu.ucr.cs.bdlab:beast-spark:0.8.0-RC1 --exclude-packages javax.media:jai_core -I $HOME/beast-init.scala"
+alias beast-shell="spark-shell --repositories https://repo.osgeo.org/repository/release/ --packages edu.ucr.cs.bdlab:beast-spark:0.8.2 --exclude-packages javax.media:jai_core -I $HOME/beast-init.scala"
 ```
 
 Now, to start the Beast shell, just type `beast-shell` and it will automatically load the Scala shortcuts.

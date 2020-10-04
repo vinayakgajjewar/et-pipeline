@@ -72,9 +72,12 @@ public class ZonalStatisticsExample {
 
     // 5. Load the polygons
     JavaRDD<IFeature> polygons = SpatialReader.readInput(sc, opts, "tl_2018_us_state.zip", "shapefile");
+    Reprojector.TransformationInfo info = Reprojector.findTransformationInfo(
+        polygons.first().getGeometry().getSRID(), rasterCRS, sc.getConf()
+    );
     polygons = polygons.map(f -> {
       Geometry g = f.getGeometry();
-      g = Reprojector.reprojectGeometry(g, rasterCRS);
+      g = Reprojector.reprojectGeometry(g, info);
       f.setGeometry(g);
       return f;
     });
