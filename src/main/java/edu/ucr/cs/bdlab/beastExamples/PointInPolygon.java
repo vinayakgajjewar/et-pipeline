@@ -15,6 +15,8 @@
  */
 package edu.ucr.cs.bdlab.beastExamples;
 
+import edu.ucr.cs.bdlab.beast.JavaSpatialRDDHelper;
+import edu.ucr.cs.bdlab.beast.JavaSpatialSparkContext;
 import edu.ucr.cs.bdlab.beast.cg.SpatialJoinAlgorithms;
 import edu.ucr.cs.bdlab.beast.common.BeastOptions;
 import edu.ucr.cs.bdlab.beast.common.JCLIOperation;
@@ -54,14 +56,13 @@ public class PointInPolygon implements JCLIOperation {
 
   @Override
   public Object run(BeastOptions opts, String[] inputs, String[] outputs, JavaSparkContext sc) throws IOException {
+    JavaSpatialSparkContext ssc = new JavaSpatialSparkContext(sc.sc());
     // Read the input features for the two datasets
-    BeastOptions opts0 = opts.retainIndex(0);
-    JavaRDD<IFeature> polygons = SpatialReader.readInput(sc, opts0, inputs[0], opts0.getString(SpatialInputFormat.InputFormat));
-    BeastOptions opts1 = opts.retainIndex(1);
-    JavaRDD<IFeature> points = SpatialReader.readInput(sc, opts1, inputs[1], opts1.getString(SpatialInputFormat.InputFormat));
+    JavaRDD<IFeature> polygons = ssc.spatialFile(inputs[0], opts.retainIndex(0));
+    JavaRDD<IFeature> points = ssc.spatialFile(inputs[1], opts.retainIndex(1));
 
     // Compute the spatial join
-    JavaPairRDD<IFeature, IFeature> joinsResults = SpatialJoin.spatialJoinBNLJ(polygons, points, SpatialJoinAlgorithms.ESJPredicate.Contains);
+    JavaPairRDD<IFeature, IFeature> joinsResults = JavaSpatialRDDHelper.spatialJoin(polygons, points);
 
     // Combine the results into features while removing the polygon geometry and keeping only its attributes
     JavaRDD<IFeature> results = joinsResults.map(pair -> {

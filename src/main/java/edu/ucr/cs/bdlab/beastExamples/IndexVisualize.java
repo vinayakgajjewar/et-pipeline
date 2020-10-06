@@ -18,6 +18,8 @@ package edu.ucr.cs.bdlab.beastExamples;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
+import edu.ucr.cs.bdlab.beast.JavaSpatialRDDHelper;
+import edu.ucr.cs.bdlab.beast.JavaSpatialSparkContext;
 import edu.ucr.cs.bdlab.beast.common.BeastOptions;
 import edu.ucr.cs.bdlab.beast.common.JCLIOperation;
 import edu.ucr.cs.bdlab.beast.geolite.EnvelopeND;
@@ -68,6 +70,7 @@ public class IndexVisualize implements JCLIOperation {
 
   @Override
   public Object run(BeastOptions opts, String[] inputs, String[] outputs, JavaSparkContext sc) throws IOException {
+    JavaSpatialSparkContext ssc = new JavaSpatialSparkContext(sc.sc());
     String indexOutput, plotOutput;
     plotOutput = inputs.length == 2? outputs[1] : inputs[0]+"_plot";
     indexOutput = outputs.length >= 1? outputs[0] : inputs[0]+"_index";
@@ -86,7 +89,7 @@ public class IndexVisualize implements JCLIOperation {
     }
 
     // Read the features in the input dataset
-    JavaRDD<IFeature> input = SpatialReader.readInput(sc, opts, inputs[0], opts.getString(SpatialInputFormat.InputFormat)).cache();
+    JavaRDD<IFeature> input = ssc.spatialFile(inputs[0], opts).cache();
     // Write the summary
     Summary summary = Summary.computeForFeatures(input);
     JsonGenerator jsonGenerator = new JsonFactory().createGenerator(System.out);
@@ -112,7 +115,6 @@ public class IndexVisualize implements JCLIOperation {
     opts.set(SpatialOutputFormat.OutputFormat, "rtree");
     JavaPairRDD<Integer, IFeature> partitionedInput = IndexHelper.partitionFeatures(input, RSGrovePartitioner.class,
         new FeatureWriterSizeFunction(opts), opts);
-    opts.setClass(SpatialOutputFormat.FeatureWriterClass, RTreeFeatureWriter.class, FeatureWriter.class);
     IndexHelper.saveIndex(partitionedInput, indexOutput, opts);
 
     // Now, build the visualization for the partitioned dataset

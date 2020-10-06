@@ -15,12 +15,10 @@
  */
 package edu.ucr.cs.bdlab.beastExamples;
 
-import edu.ucr.cs.bdlab.beast.common.BeastOptions;
+import edu.ucr.cs.bdlab.beast.JavaSpatialRDDHelper;
+import edu.ucr.cs.bdlab.beast.JavaSpatialSparkContext;
 import edu.ucr.cs.bdlab.beast.geolite.IFeature;
-import edu.ucr.cs.bdlab.beast.io.SpatialInputFormat;
-import edu.ucr.cs.bdlab.beast.io.SpatialReader;
 import org.apache.spark.api.java.JavaRDD;
-import org.apache.spark.api.java.JavaSparkContext;
 import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
@@ -35,20 +33,15 @@ import org.locationtech.jts.geom.GeometryFactory;
  */
 public class FilterFeatures {
   public static void main(String[] args) {
-    try (JavaSparkContext sc = new JavaSparkContext("local[*]", "test")) {
+    try (JavaSpatialSparkContext sc = new JavaSpatialSparkContext("local[*]", "test")) {
       // Download the input file at
       // https://www.naturalearthdata.com/http//www.naturalearthdata.com/download/10m/cultural/ne_10m_airports.zip
-      BeastOptions opts = new BeastOptions();
-      JavaRDD<IFeature> airports = SpatialReader.readInput(sc, opts, "ne_10m_airports.zip", "shapefile");
+      JavaRDD<IFeature> airports = sc.shapefile("ne_10m_airports.zip");
       System.out.printf("Total number of airports is %d\n", airports.count());
 
-      opts.set(SpatialInputFormat.FilterMBR, "-128.1,27.3,-63.8,54.3");
-      JavaRDD<IFeature> filtered_airports = SpatialReader.readInput(sc, opts, "ne_10m_airports.zip", "shapefile");
-      System.out.printf("Number of loaded airports is %d\n", filtered_airports.count());
-
       Geometry range = new GeometryFactory().toGeometry(new Envelope(-128.1, -63.8, 27.3, 54.3));
-      JavaRDD<IFeature> filtered_airports2 = airports.filter(f -> range.contains(f.getGeometry()));
-      System.out.printf("Number of filtered airports is %d\n", filtered_airports2.count());
+      JavaRDD<IFeature> filtered_airports = JavaSpatialRDDHelper.rangeQuery(airports, range);
+      System.out.printf("Number of loaded airports is %d\n", filtered_airports.count());
     }
   }
 }
