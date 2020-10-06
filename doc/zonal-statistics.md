@@ -1,6 +1,6 @@
 # Zonal Statistics
 
-This tutorial explains how to run the zonal statistics operation using geometries from a shapefile and raster data from HDF files.
+This tutorial explains how to run the zonal statistics operation using geometries from a Shapefile and raster data from HDF files.
 The zonal statistics query takes the following as input:
 
 * An aggregate function, e.g., sum, average, or maximum.
@@ -23,8 +23,7 @@ For example, it computes the average temperature for each state.
 ### 1. Initialize the Spark context
 Initialize the Spark context to load the polygons.
 ```java
-JavaSparkContext sc = new JavaSparkContext("local[*]", "test");
-BeastOptions opts = new BeastOptions();
+JavaSpatialSparkContext ssc = new JavaSpatialSparkContext("local[*]", "test");
 ```
 
 ### 2. Locate all dates for the raster data
@@ -34,21 +33,19 @@ Choose the folders that match a date range.
 String startDate = "2018.01.01";
 String endDate = "2018.01.03";
 Path rasterPath = new Path("raster");
-FileSystem rFileSystem = rasterPath.getFileSystem(opts);
-FileStatus[] matchingDates = rFileSystem.listStatus
-    (rasterPath, HDF4Reader.createDateFilter(startDate, endDate));
+FileSystem rFileSystem = rasterPath.getFileSystem(ssc.hadoopConfiguration());
+FileStatus[] matchingDates = rFileSystem.listStatus(rasterPath,
+    HDF4Reader.createDateFilter(startDate, endDate));
 ```
 
 ### 3. Select all files under the matching dates
 Under each folder, select the files that match the MBR of the polygons. Notice that if you load all the files, you will still get the same result but limiting the files based on the MBR will be faster.
 ```java
-List<Path> allRasterFiles = new ArrayList<>();
+List<String> allRasterFiles = new ArrayList<>();
 for (FileStatus matchingDir : matchingDates) {
-  FileStatus[] matchingTiles = rFileSystem.listStatus(matchingDir.getPath(),
-      HDF4Reader.createTileIDFilter(new Rectangle2D.Double(mbr.minCoord[0],
-          mbr.minCoord[1], mbr.getSideLength(0), mbr.getSideLength(1))));
+  FileStatus[] matchingTiles = rFileSystem.listStatus(matchingDir.getPath());
   for (FileStatus p : matchingTiles)
-    allRasterFiles.add(p.getPath());
+    allRasterFiles.add(p.getPath().toString());
 }
 ```
 
@@ -60,67 +57,61 @@ opts.set(SpatialInputFormat.TargetCRS, raster.getCRS().toWKT());
 raster.close();
 ```
 
-### 5. Load the polygons
-Load the polygons from a shapefile and store in a list.
+### 5. Load the polygons and project to the raster CRS
+Load the polygons from a shapefile and project them to the CRS of the raster file.
 ```java
-JavaRDD<IFeature> polygons = SpatialReader.readInput(sc, opts, "tl_2018_us_state.zip", "shapefile");
-List<IFeature> features = polygons.collect();
+JavaRDD<IFeature> polygons = ssc.shapefile("tl_2018_us_state.zip");
+polygons = JavaSpatialRDDHelper.reproject(polygons, rasterCRS);
 ```
 
-### 6. Initialize the input and output arrays
-Create an array of `Statistics` as one for each polygon. These objects will be used to accumulate the results from all matching files.
+### 6. Join with the raster files
+Perform a Raptor join (Raster-Plus-Vector) between the polygons and the raster files.
 ```java
-IGeometry[] geometries = new IGeometry[features.size()];
-Statistics[] finalResults = new Statistics[features.size()];
-for (int i = 0; i < features.size(); i++) {
-  geometries[i] = features.get(i).getGeometry();
-  finalResults[i] = new Statistics();
-  finalResults[i].setNumBands(1);
-}
+BeastOptions opts = new BeastOptions();
+opts.set("RasterReader.RasterLayerID", "LST_Day_1km");
+JavaRDD<Tuple5<IFeature, Integer, Integer, Integer, Float>> joinResults =
+    JavaSpatialRDDHelper.raptorJoin(polygons, allRasterFiles.toArray(new String[0]), opts);
 ```
 
-### 7. Run the zonal statistics operation
-Now, run the operation by processing all the polygons with all the matching raster files.
+### 7. Compute the join results
+Group the join results by state and aggregate into the statistics we wish to compute.
 ```java
-HDF4Reader raster = new HDF4Reader();
-for (Path rasterFile : allRasterFiles) {
-  raster.initialize(rFileSystem, rasterFile, "LST_Day_1km");
-  Collector[] stats = ZonalStatistics.computeZonalStatisticsScanline(raster, geometries, Statistics.class);
-  // Merge the results
-  for (int i = 0; i < stats.length; i++) {
-    if (stats[i] != null)
-      finalResults[i].accumulate(stats[i]);
-  }
-  raster.close();
-}
+JavaPairRDD<String, Tuple4<Integer, Integer, Integer, Float>> groupedResults =
+    joinResults.mapToPair(x -> new Tuple2<>((String) x._1().getAttributeValue("NAME"),
+        new Tuple4<>(x._2(), x._3(), x._4(), x._5())));
+Statistics initialSate = new Statistics();
+initialSate.setNumBands(1);
+JavaPairRDD<String, Statistics> statsResults = groupedResults.aggregateByKey(initialSate,
+    (st, x) -> (Statistics) st.collect(x._2(), x._3(), new float[] {x._4()}),
+    (st1, st2) -> (Statistics) st1.accumulate(st2));
+List<Tuple2<String, Statistics>> finalResults = statsResults.sortByKey().collect();
 ```
 
 ### 8. Print out the results
 Finally, print out the final results.
 ```java
-System.out.println("Average Temperature (Kelvin)\tState Name");
-for (int i = 0; i < geometries.length; i++) {
-  if (finalResults[i].count[0] > 0) {
-    System.out.printf("%f\t%s\n",
-        finalResults[i].sum[0] / finalResults[i].count[0],
-        features.get(i).getAttributeValue("NAME"));
-  }
-}
+System.out.println("State Name\tAverage Temperature (Kelvin)");
+    for (Tuple2<String, Statistics> entry : finalResults)
+      System.out.printf("%s\t%f\n", entry._1(), entry._2().sum[0] / entry._2().count[0]);
 ```
 
 ### Sample output
 ```
-Average Temperature (Kelvin)	State Name
-264.558095	Illinois
-270.937360	Idaho
-286.342519	New Mexico
-289.839896	California
-278.699085	Oregon
-263.361604	Nebraska
-274.040050	Washington
-279.808268	Louisiana
-279.798069	Utah
-282.680895	Texas
+State Name	Average Temperature (Kelvin)
+Arizona	294.025580
+California	289.839896
+Colorado	278.488132
+Idaho	270.937360
+Illinois	264.558095
+Iowa	258.511743
+Kansas	282.125599
+Louisiana	279.808268
+Missouri	261.739170
+Montana	261.561770
+Nebraska	263.361604
+Nevada	284.456589
+New Mexico	286.342519
+North Dakota	259.158064
 ...
 ```
 ## Complete code example
@@ -128,7 +119,7 @@ Average Temperature (Kelvin)	State Name
 The entire code is shown below.
 ```java
 /*
- * Copyright 2018 University of California, Riverside
+ * Copyright 2020 University of California, Riverside
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -144,22 +135,21 @@ The entire code is shown below.
  */
 package edu.ucr.cs.bdlab.beastExamples;
 
+import edu.ucr.cs.bdlab.beast.JavaSpatialRDDHelper;
+import edu.ucr.cs.bdlab.beast.JavaSpatialSparkContext;
 import edu.ucr.cs.bdlab.beast.common.BeastOptions;
 import edu.ucr.cs.bdlab.beast.geolite.IFeature;
-import edu.ucr.cs.bdlab.beast.cg.Reprojector;
-import edu.ucr.cs.bdlab.beast.raptor.Collector;
-import edu.ucr.cs.bdlab.beast.raptor.HDF4Reader;
-import edu.ucr.cs.bdlab.beast.raptor.Statistics;
-import edu.ucr.cs.bdlab.beast.raptor.ZonalStatistics;
-import edu.ucr.cs.bdlab.beast.io.SpatialReader;
-import edu.ucr.cs.bdlab.beast.raptor.ZonalStatisticsCore;
+import edu.ucr.cs.bdlab.raptor.HDF4Reader;
+import edu.ucr.cs.bdlab.raptor.Statistics;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
-import org.apache.spark.api.java.JavaSparkContext;
-import org.locationtech.jts.geom.Geometry;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import scala.Tuple2;
+import scala.Tuple4;
+import scala.Tuple5;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -174,75 +164,56 @@ public class ZonalStatisticsExample {
 
   public static void main(String[] args) throws IOException {
     // 1. Create a default SparkContext
-    JavaSparkContext sc = new JavaSparkContext("local[*]", "test");
-    BeastOptions opts = new BeastOptions();
+    JavaSpatialSparkContext ssc = new JavaSpatialSparkContext("local[*]", "test");
 
     // 2. Locate all dates for the raster data
     String startDate = "2018.01.01";
     String endDate = "2018.01.03";
     Path rasterPath = new Path("raster");
-    FileSystem rFileSystem = rasterPath.getFileSystem(opts.loadIntoHadoopConf(sc.hadoopConfiguration()));
-    FileStatus[] matchingDates = rFileSystem.listStatus
-            (rasterPath, HDF4Reader.createDateFilter(startDate, endDate));
+    FileSystem rFileSystem = rasterPath.getFileSystem(ssc.hadoopConfiguration());
+    FileStatus[] matchingDates = rFileSystem.listStatus(rasterPath, HDF4Reader.createDateFilter(startDate, endDate));
 
     // 3. Select all files under the matching dates
-    List<Path> allRasterFiles = new ArrayList<>();
+    List<String> allRasterFiles = new ArrayList<>();
     for (FileStatus matchingDir : matchingDates) {
       FileStatus[] matchingTiles = rFileSystem.listStatus(matchingDir.getPath());
       for (FileStatus p : matchingTiles)
-        allRasterFiles.add(p.getPath());
+        allRasterFiles.add(p.getPath().toString());
     }
 
     // 4. Determine the CRS of the raster data to reproject the vector data
     HDF4Reader raster = new HDF4Reader();
-    raster.initialize(rFileSystem, allRasterFiles.get(0), "LST_Day_1km");
+    raster.initialize(rFileSystem, new Path(allRasterFiles.get(0)), "LST_Day_1km");
     CoordinateReferenceSystem rasterCRS = raster.getCRS();
     raster.close();
 
-    // 5. Load the polygons
-    JavaRDD<IFeature> polygons = SpatialReader.readInput(sc, opts, "tl_2018_us_state.zip", "shapefile");
-    polygons = polygons.map(f -> {
-      Geometry g = f.getGeometry();
-      g = Reprojector.reprojectGeometry(g, rasterCRS);
-      f.setGeometry(g);
-      return f;
-    });
-    List<IFeature> features = polygons.collect();
+    // 5. Load the polygons and project to the raster CRS
+    JavaRDD<IFeature> polygons = ssc.shapefile("tl_2018_us_state.zip");
+    polygons = JavaSpatialRDDHelper.reproject(polygons, rasterCRS);
 
-    // 6. Initialize the list of geometries and results array
-    Geometry[] geometries = new Geometry[features.size()];
-    Statistics[] finalResults = new Statistics[features.size()];
-    for (int i = 0; i < features.size(); i++) {
-      geometries[i] = features.get(i).getGeometry();
-      finalResults[i] = new Statistics();
-      finalResults[i].setNumBands(1);
-    }
+    // 6. Join with the raster files
+    BeastOptions opts = new BeastOptions();
+    opts.set("RasterReader.RasterLayerID", "LST_Day_1km");
+    JavaRDD<Tuple5<IFeature, Integer, Integer, Integer, Float>> joinResults =
+        JavaSpatialRDDHelper.raptorJoin(polygons, allRasterFiles.toArray(new String[0]), opts);
 
-    // 7. Run the zonal statistics operation
-    for (Path rasterFile : allRasterFiles) {
-      raster.initialize(rFileSystem, rasterFile, "LST_Day_1km");
-      Collector[] stats = ZonalStatisticsCore.computeZonalStatisticsScanline(raster, geometries, Statistics.class);
-      // Merge the results
-      for (int i = 0; i < stats.length; i++) {
-        if (stats[i] != null)
-          finalResults[i].accumulate(stats[i]);
-      }
-      raster.close();
-    }
+    // 7. Compute the join results
+    JavaPairRDD<String, Tuple4<Integer, Integer, Integer, Float>> groupedResults =
+        joinResults.mapToPair(x -> new Tuple2<>((String) x._1().getAttributeValue("NAME"),
+            new Tuple4<>(x._2(), x._3(), x._4(), x._5())));
+    Statistics initialSate = new Statistics();
+    initialSate.setNumBands(1);
+    JavaPairRDD<String, Statistics> statsResults = groupedResults.aggregateByKey(initialSate,
+        (st, x) -> (Statistics) st.collect(x._2(), x._3(), new float[] {x._4()}),
+        (st1, st2) -> (Statistics) st1.accumulate(st2));
+    List<Tuple2<String, Statistics>> finalResults = statsResults.sortByKey().collect();
 
     // 8. Print out the results
-    System.out.println("Average Temperature (Kelvin)\tState Name");
-    for (int i = 0; i < geometries.length; i++) {
-      if (finalResults[i].count[0] > 0) {
-        System.out.printf("%f\t%s\n",
-            finalResults[i].sum[0] / finalResults[i].count[0],
-            features.get(i).getAttributeValue("NAME"));
-      }
-    }
-
+    System.out.println("State Name\tAverage Temperature (Kelvin)");
+    for (Tuple2<String, Statistics> entry : finalResults)
+      System.out.printf("%s\t%f\n", entry._1(), entry._2().sum[0] / entry._2().count[0]);
     // Clean up
-    sc.close();
+    ssc.close();
   }
 }
-
 ```

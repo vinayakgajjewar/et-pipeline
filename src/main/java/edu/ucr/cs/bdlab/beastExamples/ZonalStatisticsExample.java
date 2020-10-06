@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 University of California, Riverside
+ * Copyright 2020 University of California, Riverside
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,15 +45,13 @@ public class ZonalStatisticsExample {
   public static void main(String[] args) throws IOException {
     // 1. Create a default SparkContext
     JavaSpatialSparkContext ssc = new JavaSpatialSparkContext("local[*]", "test");
-    BeastOptions opts = new BeastOptions();
 
     // 2. Locate all dates for the raster data
     String startDate = "2018.01.01";
     String endDate = "2018.01.03";
     Path rasterPath = new Path("raster");
-    FileSystem rFileSystem = rasterPath.getFileSystem(opts.loadIntoHadoopConf(ssc.hadoopConfiguration()));
-    FileStatus[] matchingDates = rFileSystem.listStatus
-            (rasterPath, HDF4Reader.createDateFilter(startDate, endDate));
+    FileSystem rFileSystem = rasterPath.getFileSystem(ssc.hadoopConfiguration());
+    FileStatus[] matchingDates = rFileSystem.listStatus(rasterPath, HDF4Reader.createDateFilter(startDate, endDate));
 
     // 3. Select all files under the matching dates
     List<String> allRasterFiles = new ArrayList<>();
@@ -73,14 +71,16 @@ public class ZonalStatisticsExample {
     JavaRDD<IFeature> polygons = ssc.shapefile("tl_2018_us_state.zip");
     polygons = JavaSpatialRDDHelper.reproject(polygons, rasterCRS);
 
-    //ø 6. Join with the raster files
+    // 6. Join with the raster files
+    BeastOptions opts = new BeastOptions();
     opts.set("RasterReader.RasterLayerID", "LST_Day_1km");
     JavaRDD<Tuple5<IFeature, Integer, Integer, Integer, Float>> joinResults =
         JavaSpatialRDDHelper.raptorJoin(polygons, allRasterFiles.toArray(new String[0]), opts);
 
     // 7. Compute the join results
     JavaPairRDD<String, Tuple4<Integer, Integer, Integer, Float>> groupedResults =
-        joinResults.mapToPair(x -> new Tuple2<>((String) x._1().getAttributeValue("NAME"), new Tuple4<>(x._2(), x._3(), x._4(), x._5())));
+        joinResults.mapToPair(x -> new Tuple2<>((String) x._1().getAttributeValue("NAME"),
+            new Tuple4<>(x._2(), x._3(), x._4(), x._5())));
     Statistics initialSate = new Statistics();
     initialSate.setNumBands(1);
     JavaPairRDD<String, Statistics> statsResults = groupedResults.aggregateByKey(initialSate,
