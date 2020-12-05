@@ -17,8 +17,8 @@ public class ClusterCanvas extends Canvas {
 
   public ClusterCanvas() {}
 
-  public ClusterCanvas(int width, int height, Envelope mbr) {
-    super(mbr, width, height);
+  public ClusterCanvas(int width, int height, Envelope mbr, long tileID) {
+    super(mbr, width, height, tileID);
   }
 
   public void addPoint(Coordinate c, int radius, Envelope mbr) {

@@ -15,8 +15,6 @@
  */
 package edu.ucr.cs.bdlab.beastExamples;
 
-import edu.ucr.cs.bdlab.beast.geolite.EnvelopeND;
-import edu.ucr.cs.bdlab.beast.geolite.EnvelopeNDLite;
 import edu.ucr.cs.bdlab.beast.geolite.Feature;
 import edu.ucr.cs.bdlab.beast.geolite.IFeature;
 import edu.ucr.cs.bdlab.beast.io.CSVFeatureReader;
@@ -54,9 +52,6 @@ public class RoadsReader extends FeatureReader {
   /**The returned feature*/
   protected Feature feature;
 
-  /**The MBR of the current feature*/
-  protected final EnvelopeNDLite featureMBR = new EnvelopeNDLite(2);
-
   protected GeometryFactory factory = new GeometryFactory(new PrecisionModel(PrecisionModel.FLOATING), 4326);
 
   @Override
@@ -83,18 +78,11 @@ public class RoadsReader extends FeatureReader {
       int i = 0;
       while (value.getLength() > 0)
         feature.appendAttribute("attr"+i, CSVFeatureReader.deleteAttribute(value, ',', 0, CSVFeatureReader.DefaultQuoteCharacters));
-      featureMBR.setEmpty();
-      featureMBR.merge(feature.getGeometry());
       return true;
     } catch (Exception e) {
       LOG.error(String.format("Error reading object at %d with value '%s'", lineReader.getCurrentKey().get(), value));
       throw e;
     }
-  }
-
-  @Override
-  public EnvelopeND getCurrentKey() {
-    return new EnvelopeND(factory, featureMBR);
   }
 
   @Override

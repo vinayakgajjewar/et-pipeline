@@ -33,7 +33,6 @@ import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.LineRecordReader;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
-import org.locationtech.jts.geom.PrecisionModel;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
 
@@ -131,11 +130,6 @@ public class JsonWKTReader extends FeatureReader {
       }
     }
     return true;
-  }
-
-  @Override
-  public EnvelopeND getCurrentKey() {
-    return null;
   }
 
   @Override

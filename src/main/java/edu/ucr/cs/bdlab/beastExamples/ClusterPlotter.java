@@ -39,8 +39,8 @@ public class ClusterPlotter extends Plotter {
   }
 
   @Override
-  public Canvas createCanvas(int width, int height, Envelope mbr) {
-    return new ClusterCanvas(width, height, mbr);
+  public Canvas createCanvas(int width, int height, Envelope mbr, long tileID) {
+    return new ClusterCanvas(width, height, mbr, tileID);
   }
 
   @Override
