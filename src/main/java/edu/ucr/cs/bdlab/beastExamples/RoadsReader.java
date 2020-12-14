@@ -21,10 +21,12 @@ import edu.ucr.cs.bdlab.beast.io.CSVFeatureReader;
 import edu.ucr.cs.bdlab.beast.io.FeatureReader;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.InputSplit;
-import org.apache.hadoop.mapreduce.TaskAttemptContext;
+import org.apache.hadoop.mapreduce.TaskAttemptID;
 import org.apache.hadoop.mapreduce.lib.input.LineRecordReader;
+import org.apache.hadoop.mapreduce.task.TaskAttemptContextImpl;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.CoordinateXY;
 import org.locationtech.jts.geom.GeometryFactory;
@@ -55,8 +57,8 @@ public class RoadsReader extends FeatureReader {
   protected GeometryFactory factory = new GeometryFactory(new PrecisionModel(PrecisionModel.FLOATING), 4326);
 
   @Override
-  public void initialize(InputSplit split, TaskAttemptContext context) throws IOException {
-    lineReader.initialize(split, context);
+  public void initialize(InputSplit split, Configuration conf) throws IOException {
+    lineReader.initialize(split, new TaskAttemptContextImpl(conf, new TaskAttemptID()));
   }
 
   @Override

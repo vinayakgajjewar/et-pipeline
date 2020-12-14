@@ -22,15 +22,16 @@ import edu.ucr.cs.bdlab.beast.geolite.EnvelopeND;
 import edu.ucr.cs.bdlab.beast.geolite.Feature;
 import edu.ucr.cs.bdlab.beast.geolite.IFeature;
 import edu.ucr.cs.bdlab.beast.io.FeatureReader;
-import edu.ucr.cs.bdlab.beast.io.SpatialInputFormat;
+import edu.ucr.cs.bdlab.beast.io.SpatialFileRDD;
 import edu.ucr.cs.bdlab.beast.util.OperationParam;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.InputSplit;
-import org.apache.hadoop.mapreduce.TaskAttemptContext;
+import org.apache.hadoop.mapreduce.TaskAttemptID;
 import org.apache.hadoop.mapreduce.lib.input.LineRecordReader;
+import org.apache.hadoop.mapreduce.task.TaskAttemptContextImpl;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.io.ParseException;
@@ -76,11 +77,10 @@ public class JsonWKTReader extends FeatureReader {
   protected final WKTReader wktReader = new WKTReader(geometryFactory);
 
   @Override
-  public void initialize(InputSplit inputSplit, TaskAttemptContext taskAttemptContext) throws IOException {
-    lineReader.initialize(inputSplit, taskAttemptContext);
-    Configuration conf = taskAttemptContext.getConfiguration();
+  public void initialize(InputSplit inputSplit, Configuration conf) throws IOException {
+    lineReader.initialize(inputSplit, new TaskAttemptContextImpl(conf, new TaskAttemptID()));
     this.wktAttrName = conf.get(WKTAttribute, "boundaryshape");
-    String filterMBRStr = conf.get(SpatialInputFormat.FilterMBR);
+    String filterMBRStr = conf.get(SpatialFileRDD.FilterMBR());
     if (filterMBRStr != null) {
       String[] parts = filterMBRStr.split(",");
       double[] dblParts = new double[parts.length];

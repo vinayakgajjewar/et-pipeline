@@ -18,7 +18,6 @@ package edu.ucr.cs.bdlab.beastExamples;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
-import edu.ucr.cs.bdlab.beast.JavaSpatialRDDHelper;
 import edu.ucr.cs.bdlab.beast.JavaSpatialSparkContext;
 import edu.ucr.cs.bdlab.beast.common.BeastOptions;
 import edu.ucr.cs.bdlab.beast.common.JCLIOperation;
@@ -28,11 +27,8 @@ import edu.ucr.cs.bdlab.beast.geolite.IFeature;
 import edu.ucr.cs.bdlab.beast.geolite.PointND;
 import edu.ucr.cs.bdlab.beast.indexing.IndexHelper;
 import edu.ucr.cs.bdlab.beast.indexing.RSGrovePartitioner;
-import edu.ucr.cs.bdlab.beast.indexing.RTreeFeatureWriter;
-import edu.ucr.cs.bdlab.beast.io.FeatureWriter;
-import edu.ucr.cs.bdlab.beast.io.SpatialInputFormat;
+import edu.ucr.cs.bdlab.beast.io.SpatialFileRDD;
 import edu.ucr.cs.bdlab.beast.io.SpatialOutputFormat;
-import edu.ucr.cs.bdlab.beast.io.SpatialReader;
 import edu.ucr.cs.bdlab.beast.operations.FeatureWriterSizeFunction;
 import edu.ucr.cs.bdlab.beast.synopses.Summary;
 import edu.ucr.cs.bdlab.beast.util.OperationMetadata;
@@ -59,7 +55,7 @@ import java.io.IOException;
     description = "Indexes the data and then visualizes it using adaptive multilevel plotter",
     inputArity = "1",
     outputArity = "0-2",
-    inheritParams = {SpatialInputFormat.class})
+    inheritParams = {SpatialFileRDD.class})
 public class IndexVisualize implements JCLIOperation {
 
   @OperationParam(
@@ -120,7 +116,7 @@ public class IndexVisualize implements JCLIOperation {
     // Now, build the visualization for the partitioned dataset
     opts.setBoolean(MultilevelPlot.IncludeDataTiles(), false);
     // Adjust the input format to read from the R-tree index correctly
-    opts.set(SpatialInputFormat.InputFormat, "rtree");
+    opts.set(SpatialFileRDD.InputFormat(), "rtree");
     // Create a full 20-level visualization
     MultilevelPyramidPlotHelper.Range levels = new MultilevelPyramidPlotHelper.Range(0, 19);
     // Start the actual visualization

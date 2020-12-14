@@ -17,15 +17,12 @@ package edu.ucr.cs.bdlab.beastExamples;
 
 import edu.ucr.cs.bdlab.beast.JavaSpatialRDDHelper;
 import edu.ucr.cs.bdlab.beast.JavaSpatialSparkContext;
-import edu.ucr.cs.bdlab.beast.cg.SpatialJoinAlgorithms;
 import edu.ucr.cs.bdlab.beast.common.BeastOptions;
 import edu.ucr.cs.bdlab.beast.common.JCLIOperation;
 import edu.ucr.cs.bdlab.beast.geolite.Feature;
 import edu.ucr.cs.bdlab.beast.geolite.IFeature;
 import edu.ucr.cs.bdlab.beast.io.CSVFeatureWriter;
-import edu.ucr.cs.bdlab.beast.io.SpatialInputFormat;
-import edu.ucr.cs.bdlab.beast.operations.SpatialJoin;
-import edu.ucr.cs.bdlab.beast.io.SpatialReader;
+import edu.ucr.cs.bdlab.beast.io.SpatialFileRDD;
 import edu.ucr.cs.bdlab.beast.io.SpatialWriter;
 import edu.ucr.cs.bdlab.beast.util.OperationMetadata;
 import edu.ucr.cs.bdlab.beast.util.OperationParam;
@@ -46,7 +43,7 @@ import java.io.IOException;
     description = "Computes the point-in-polygon query between two inputs. The two inputs are <polygons>, <points>.",
     inputArity = "2",
     outputArity = "1",
-    inheritParams = {SpatialInputFormat.class})
+    inheritParams = {SpatialFileRDD.class})
 public class PointInPolygon implements JCLIOperation {
   @OperationParam(
       description = "Overwrite the output if it already exists {true, false}.",
