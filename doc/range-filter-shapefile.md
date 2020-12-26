@@ -102,12 +102,13 @@ or Eclipse, as a regular Java program.
 Alternatively, you can run it from the command line as follows.
 
 Package your project into JAR
-
-    mvn package
+```shell
+mvn package
+```
 
 Run the JAR using `spark-submit` as shown below assuming that the generated JAR file is named `beast-examples-0.2.0.jar`
 
 ```shell
-spark-submit --packages edu.ucr.cs.bdlab:beast-spark:0.8.3 \
-    --class edu.ucr.cs.bdlab.beastExamples.FilterFeatures target/beast-examples-0.8.3.jar
+spark-submit --packages edu.ucr.cs.bdlab:beast-spark:0.9.0-RC1 \
+    --class edu.ucr.cs.bdlab.beastExamples.FilterFeatures target/beast-examples-0.9.0-RC1.jar
 ```

@@ -31,6 +31,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
+import org.locationtech.jts.geom.Geometry;
 
 import java.io.IOException;
 
@@ -65,12 +66,11 @@ public class PointInPolygon implements JCLIOperation {
     JavaRDD<IFeature> results = joinsResults.map(pair -> {
       IFeature polygon = pair._1;
       IFeature point = pair._2;
-      Feature result = new Feature(point.getGeometry());
-      for (int $iAttr = 0; $iAttr < polygon.getNumAttributes(); $iAttr++)
-        result.appendAttribute(polygon.getAttributeName($iAttr), polygon.getAttributeValue($iAttr));
-      for (int $iAttr = 0; $iAttr < point.getNumAttributes(); $iAttr++)
-        result.appendAttribute(point.getAttributeName($iAttr), point.getAttributeValue($iAttr));
-      return result;
+      Geometry geometry = point.getGeometry();
+      Object[] values = new Object[point.getNumAttributes() + polygon.getNumAttributes()];
+      polygon.toSeq().copyToArray(values);
+      point.toSeq().copyToArray(values, polygon.getNumAttributes());
+      return new Feature(geometry, null, null, values);
     });
 
     // Write to the output

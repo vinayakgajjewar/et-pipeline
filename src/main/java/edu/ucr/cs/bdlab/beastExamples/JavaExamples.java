@@ -26,6 +26,9 @@ import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.SparkSession;
+import org.apache.spark.sql.types.StringType$;
+import org.apache.spark.sql.types.StructField;
+import org.apache.spark.sql.types.StructType;
 import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
@@ -48,10 +51,12 @@ public class JavaExamples {
 
     try {
       // Load spatial datasets
-      // Load a shapefile. Download from: ftp://ftp2.census.gov/geo/tiger/TIGER2018/STATE/
+      // Load a shapefile.
+      // Download from: ftp://ftp2.census.gov/geo/tiger/TIGER2018/STATE/
       JavaRDD<IFeature> polygons = SpatialReader.readInput(sparkContext, new BeastOptions(), "tl_2018_us_state.zip", "shapefile");
 
-      // Load points in GeoJSON format. Download from https://star.cs.ucr.edu/dynamic/download.cgi/Tweets/data_index.csv.gz?mbr=-117.8538,33.2563,-116.8142,34.4099&point
+      // Load points in GeoJSON format.
+      // Download from https://star.cs.ucr.edu/dynamic/download.cgi/Tweets/data_index.csv.gz?mbr=-117.8538,33.2563,-116.8142,34.4099&point
       JavaRDD<IFeature> points = SpatialReader.readInput(sparkContext, new BeastOptions(), "Tweets_index.geojson", "geojson");
 
       // Run a range query
@@ -68,9 +73,13 @@ public class JavaExamples {
       JavaRDD<IFeature> finalResults = sjResults.map(pip -> {
         IFeature polygon = pip._1;
         IFeature point = pip._2;
-        Feature feature = new Feature(point);
-        feature.appendAttribute("state", polygon.getAttributeValue("NAME"));
-        return feature;
+        Object[] values = new Object[point.length() + 1];
+        point.toSeq().copyToArray(values);
+        values[values.length - 1] = (String) polygon.getAs("NAME");
+        StructField[] schema = new StructField[values.length];
+        point.schema().copyToArray(schema);
+        schema[schema.length - 1] = new StructField("state", StringType$.MODULE$, true, null);
+        return new Feature(values, new StructType(schema));
       });
 
       // Write the output in CSV format

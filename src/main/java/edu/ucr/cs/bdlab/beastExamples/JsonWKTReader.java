@@ -38,6 +38,8 @@ import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A custom record reader to use for a demo
@@ -94,11 +96,13 @@ public class JsonWKTReader extends FeatureReader {
   public boolean nextKeyValue() throws IOException {
     if (!lineReader.nextKeyValue())
       return false;
-    feature = new Feature();
     // Read the line as text and parse it as JSON
     Text line = lineReader.getCurrentValue();
     JsonParser parser = jsonFactory.createParser(line.getBytes(), 0, line.getLength());
     // Iterate over key-value pairs
+    Geometry geometry = null;
+    List<String> names = new ArrayList<>();
+    List<Object> values = new ArrayList<>();
     if (parser.nextToken() == JsonToken.START_OBJECT) {
       while (parser.nextToken() != JsonToken.END_OBJECT) {
         String attrName = parser.getCurrentName();
@@ -106,8 +110,7 @@ public class JsonWKTReader extends FeatureReader {
           // Read the geometry
           String wkt = parser.nextTextValue();
           try {
-            Geometry geometry = wktReader.read(wkt);
-            feature.setGeometry(geometry);
+            geometry = wktReader.read(wkt);
           } catch (ParseException e) {
             throw new RuntimeException(String.format("Error parsing WKT '%s'", wkt), e);
           }
@@ -124,11 +127,14 @@ public class JsonWKTReader extends FeatureReader {
             default:
               LOG.warn("Non-supported token value type " + token);
           }
-          if (value != null)
-            feature.appendAttribute(attrName, value);
+          if (value != null) {
+            names.add(attrName);
+            values.add(value);
+          }
         }
       }
     }
+    feature = new Feature(geometry, names.toArray(new String[0]), null, values.toArray());
     return true;
   }
 

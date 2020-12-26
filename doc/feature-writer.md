@@ -75,12 +75,14 @@ To be more specific, download the following file
 
 Then, compile your code into JAR using the following command:
 
-    mvn package
+```shell
+mvn package
+```
 
 Let's say the generated JAR file is called `beast-example.jar`.
 Now you can run the following command:
 ```shell
-spark-submit --packages edu.ucr.cs.bdlab:beast-spark:0.8.3 \
+spark-submit --packages edu.ucr.cs.bdlab:beast-spark:0.9.0-RC1 \
     --class edu.ucr.cs.bdlab.beast.operations.Main beast-example.jar \
     cat ne_10m_airports.zip iformat:shapefile airports.xyz oformat:newwriter
 ```

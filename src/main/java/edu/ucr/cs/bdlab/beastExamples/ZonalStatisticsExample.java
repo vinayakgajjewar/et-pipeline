@@ -79,7 +79,7 @@ public class ZonalStatisticsExample {
 
     // 7. Compute the join results
     JavaPairRDD<String, Tuple4<Integer, Integer, Integer, Float>> groupedResults =
-        joinResults.mapToPair(x -> new Tuple2<>((String) x._1().getAttributeValue("NAME"),
+        joinResults.mapToPair(x -> new Tuple2<>((String) x._1().getAs("NAME"),
             new Tuple4<>(x._2(), x._3(), x._4(), x._5())));
     Statistics initialSate = new Statistics();
     initialSate.setNumBands(1);

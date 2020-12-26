@@ -34,6 +34,8 @@ import org.locationtech.jts.geom.LineString;
 import org.locationtech.jts.geom.PrecisionModel;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Reads the road network dataset provided by SpatialHadoop on the following link
@@ -76,10 +78,10 @@ public class RoadsReader extends FeatureReader {
               new CoordinateXY(x2, y2)
       };
       LineString lineString = factory.createLineString(coordinates);
-      feature = new Feature(lineString);
-      int i = 0;
+      List<Object> values = new ArrayList<>();
       while (value.getLength() > 0)
-        feature.appendAttribute("attr"+i, CSVFeatureReader.deleteAttribute(value, ',', 0, CSVFeatureReader.DefaultQuoteCharacters));
+        values.add(CSVFeatureReader.deleteAttribute(value, ',', 0, CSVFeatureReader.DefaultQuoteCharacters));
+      feature = new Feature(lineString, null, null, values.toArray());
       return true;
     } catch (Exception e) {
       LOG.error(String.format("Error reading object at %d with value '%s'", lineReader.getCurrentKey().get(), value));
