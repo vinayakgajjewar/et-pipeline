@@ -1,11 +1,7 @@
 package edu.ucr.cs.bdlab.beastExamples
 
 import edu.ucr.cs.bdlab.beast.cg.SpatialJoinAlgorithms.{ESJDistributedAlgorithm, ESJPredicate}
-import edu.ucr.cs.bdlab.beast.common.BeastOptions
 import edu.ucr.cs.bdlab.beast.geolite.{Feature, IFeature}
-import edu.ucr.cs.bdlab.beast.indexing.RSGrovePartitioner
-import edu.ucr.cs.bdlab.beast.util.BeastServer
-import edu.ucr.cs.bdlab.davinci.DaVinciServer
 import org.apache.spark.SparkConf
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession

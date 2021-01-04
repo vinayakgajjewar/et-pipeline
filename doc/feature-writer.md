@@ -82,7 +82,7 @@ mvn package
 Let's say the generated JAR file is called `beast-example.jar`.
 Now you can run the following command:
 ```shell
-spark-submit --packages edu.ucr.cs.bdlab:beast-spark:0.9.0-RC1 \
+spark-submit --packages edu.ucr.cs.bdlab:beast-spark:0.9.0 \
     --class edu.ucr.cs.bdlab.beast.operations.Main beast-example.jar \
     cat ne_10m_airports.zip iformat:shapefile airports.xyz oformat:newwriter
 ```
