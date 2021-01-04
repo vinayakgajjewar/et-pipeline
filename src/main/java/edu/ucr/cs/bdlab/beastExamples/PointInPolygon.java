@@ -70,7 +70,7 @@ public class PointInPolygon implements JCLIOperation {
       Object[] values = new Object[point.getNumAttributes() + polygon.getNumAttributes()];
       polygon.toSeq().copyToArray(values);
       point.toSeq().copyToArray(values, polygon.getNumAttributes());
-      return new Feature(geometry, null, null, values);
+      return Feature.create(geometry, null, null, values);
     });
 
     // Write to the output

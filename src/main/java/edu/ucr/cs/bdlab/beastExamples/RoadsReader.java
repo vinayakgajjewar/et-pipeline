@@ -81,7 +81,7 @@ public class RoadsReader extends FeatureReader {
       List<Object> values = new ArrayList<>();
       while (value.getLength() > 0)
         values.add(CSVFeatureReader.deleteAttribute(value, ',', 0, CSVFeatureReader.DefaultQuoteCharacters));
-      feature = new Feature(lineString, null, null, values.toArray());
+      feature = Feature.create(lineString, null, null, values.toArray());
       return true;
     } catch (Exception e) {
       LOG.error(String.format("Error reading object at %d with value '%s'", lineReader.getCurrentKey().get(), value));

@@ -134,7 +134,7 @@ public class JsonWKTReader extends FeatureReader {
         }
       }
     }
-    feature = new Feature(geometry, names.toArray(new String[0]), null, values.toArray());
+    feature = Feature.create(geometry, names.toArray(new String[0]), null, values.toArray());
     return true;
   }
 

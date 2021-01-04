@@ -102,7 +102,7 @@ public class IndexVisualize implements JCLIOperation {
       } else if (geom instanceof EnvelopeND && ((EnvelopeND)geom).getCoordinateDimension() > 2) {
         geom = geom.getEnvelope();
       }
-      return new Feature(geom);
+      return Feature.create(null, geom);
     });
 
     // Index the file using R*-Grove as a global index and R-tree as a local index
