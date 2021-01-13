@@ -63,9 +63,47 @@
         <version>3.1.1</version>
         <configuration>
           <artifactSet>
-            <excludes>
-              <exclude>org.apache.spark:spark-core_2.11</exclude>
-            </excludes>
+            <includes>
+              <include>edu.ucr.cs.bdlab:beast-spark</include>
+              <include>edu.ucr.cs.bdlab:cg</include>
+              <include>edu.ucr.cs.bdlab:common</include>
+              <include>edu.ucr.cs.bdlab:io</include>
+              <include>edu.ucr.cs.bdlab:raptor</include>
+              <include>edu.ucr.cs.bdlab:visualization</include>
+              <include>edu.ucr.cs.bdlab:jhdf</include>
+              <include>org.locationtech.jts:jts-core</include>
+              <!-- org.mortbay.jetty:jetty + dependencies -->
+              <include>org.mortbay.jetty:jetty</include>
+              <include>org.mortbay.jetty:jetty-util</include>
+              <include>org.mortbay.jetty:servlet-api</include>
+              <!-- /org.mortbay.jetty:jetty + dependencies -->
+              <!-- org.geotools:gt-epsg-hsql + dependencies -->
+              <include>org.geotools:gt-epsg-hsql</include>
+              <include>org.geotools:gt-referencing</include>
+              <include>org.geotools:gt-metadata</include>
+              <include>org.geotools:gt-opengis</include>
+              <include>org.geotools.ogc:net.opengis.ows</include>
+              <include>org.geotools.ogc:org.w3.xlink</include>
+              <include>org.hsqldb:hsqldb</include>
+              <include>org.eclipse.emf:org.eclipse.emf.common</include>
+              <include>org.eclipse.emf:org.eclipse.emf.ecore</include>
+              <include>org.eclipse.emf:org.eclipse.emf.ecore.xmi</include>
+              <include>systems.uom:systems-common-java8</include>
+              <include>tec.uom:uom-se</include>
+              <include>tec.uom.lib:uom-lib-common</include>
+              <include>si.uom:si-quantity</include>
+              <include>si.uom:si-units-java8</include>
+              <include>javax.measure:unit-api</include>
+              <include>javax:javaee-api</include>
+              <include>javax.media:jai_core</include>
+              <include>com.sun.mail:javax.mail</include>
+              <include>org.ejml:ejml-ddense</include>
+              <include>org.ejml:ejml-core</include>
+              <include>commons-pool:commons-pool</include>
+              <include>jgridshift:jgridshift-core</include>
+              <include>net.sf.geographiclib:GeographicLib-Java</include>
+              <!-- /org.geotools:gt-epsg-hsql + dependencies -->
+            </includes>
           </artifactSet>
           <filters>
             <filter>
@@ -81,7 +119,7 @@
           <outputDirectory>target/</outputDirectory>
           <transformers>
             <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-              <mainClass>edu.ucr.cs.bdlab.sparkOperations.Main</mainClass>
+              <mainClass>edu.ucr.cs.bdlab.beast.operations.Main</mainClass>
             </transformer>
             <!-- Merge configuration files from all modules -->
             <transformer implementation="org.apache.maven.plugins.shade.resource.XmlAppendingTransformer">
