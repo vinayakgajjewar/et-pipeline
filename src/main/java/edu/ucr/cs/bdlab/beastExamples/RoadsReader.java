@@ -15,10 +15,12 @@
  */
 package edu.ucr.cs.bdlab.beastExamples;
 
+import edu.ucr.cs.bdlab.beast.common.BeastOptions;
 import edu.ucr.cs.bdlab.beast.geolite.Feature;
 import edu.ucr.cs.bdlab.beast.geolite.IFeature;
 import edu.ucr.cs.bdlab.beast.io.CSVFeatureReader;
 import edu.ucr.cs.bdlab.beast.io.FeatureReader;
+import edu.ucr.cs.bdlab.beast.io.SpatialReaderMetadata;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
@@ -42,7 +44,7 @@ import java.util.List;
  * https://drive.google.com/file/d/0B1jY75xGiy7ecDEtR1V1X21QVkE
  *
  */
-@FeatureReader.Metadata(
+@SpatialReaderMetadata(
     description = "Parses a CSV file that contains line segments",
     shortName = "roadnetwork",
     extension = ".csv"
@@ -59,8 +61,8 @@ public class RoadsReader extends FeatureReader {
   protected GeometryFactory factory = new GeometryFactory(new PrecisionModel(PrecisionModel.FLOATING), 4326);
 
   @Override
-  public void initialize(InputSplit split, Configuration conf) throws IOException {
-    lineReader.initialize(split, new TaskAttemptContextImpl(conf, new TaskAttemptID()));
+  public void initialize(InputSplit split, BeastOptions conf) throws IOException {
+    lineReader.initialize(split, new TaskAttemptContextImpl(conf.loadIntoHadoopConf(null), new TaskAttemptID()));
   }
 
   @Override

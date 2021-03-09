@@ -29,7 +29,7 @@ import edu.ucr.cs.bdlab.beast.indexing.IndexHelper;
 import edu.ucr.cs.bdlab.beast.indexing.RSGrovePartitioner;
 import edu.ucr.cs.bdlab.beast.io.SpatialFileRDD;
 import edu.ucr.cs.bdlab.beast.io.SpatialOutputFormat;
-import edu.ucr.cs.bdlab.beast.operations.FeatureWriterSizeFunction;
+import edu.ucr.cs.bdlab.beast.operations.FeatureWriterSize;
 import edu.ucr.cs.bdlab.beast.synopses.Summary;
 import edu.ucr.cs.bdlab.beast.util.OperationMetadata;
 import edu.ucr.cs.bdlab.beast.util.OperationParam;
@@ -110,7 +110,7 @@ public class IndexVisualize implements JCLIOperation {
     opts.setBoolean(IndexHelper.DisjointIndex(), true);
     opts.set(SpatialOutputFormat.OutputFormat, "rtree");
     JavaPairRDD<Integer, IFeature> partitionedInput = IndexHelper.partitionFeatures(input, RSGrovePartitioner.class,
-        new FeatureWriterSizeFunction(opts), opts);
+        new FeatureWriterSize(opts), opts);
     IndexHelper.saveIndex(partitionedInput, indexOutput, opts);
 
     // Now, build the visualization for the partitioned dataset

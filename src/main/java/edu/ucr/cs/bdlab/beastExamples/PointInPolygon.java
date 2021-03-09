@@ -84,7 +84,7 @@ public class PointInPolygon implements JCLIOperation {
       if (fileSystem.exists(outPath))
         fileSystem.delete(outPath, true);
     }
-    SpatialWriter.saveFeatures(results, oFormat, outputs[0], opts);
+    SpatialWriter.saveFeaturesJ(results, oFormat, outputs[0], opts);
     return null;
   }
 }

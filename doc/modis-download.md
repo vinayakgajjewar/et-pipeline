@@ -34,6 +34,7 @@ machine urs.earthdata.nasa.gov
 ```
 Replace `<username>` and `<password>` with your username and password that you used
 to create the account.
+For more information, check the [detailed instructions](https://lpdaac.usgs.gov/resources/e-learning/how-access-lp-daac-data-command-line/).
 
 ### 3. Download the download script
 

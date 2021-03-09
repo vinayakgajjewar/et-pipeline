@@ -4,7 +4,6 @@
   which are also annotated with class edu.ucr.cs.bdlab.io.FeatureReader.Metadata -->
   <Readers>
     <Reader>edu.ucr.cs.bdlab.beastExamples.RoadsReader</Reader>
-    <Reader>edu.ucr.cs.bdlab.beastExamples.JsonWKTReader</Reader>
   </Readers>
 
   <Operations>

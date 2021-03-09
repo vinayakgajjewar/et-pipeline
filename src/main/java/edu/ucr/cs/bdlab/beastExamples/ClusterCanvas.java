@@ -4,18 +4,13 @@ import edu.ucr.cs.bdlab.davinci.Canvas;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Envelope;
 
-import java.awt.Rectangle;
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
+import java.awt.*;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ClusterCanvas extends Canvas {
 
   Map<Rectangle, Integer>  clusters=new ConcurrentHashMap<>();
-
-  public ClusterCanvas() {}
 
   public ClusterCanvas(int width, int height, Envelope mbr, long tileID) {
     super(mbr, width, height, tileID);
@@ -62,36 +57,6 @@ public class ClusterCanvas extends Canvas {
       if (!merged) {
         clusters.put(newCluster.getKey(), newCluster.getValue());
       }
-    }
-  }
-
-  @Override
-  public void writeExternal(ObjectOutput out) throws IOException {
-    super.writeExternal(out);
-    int count = clusters.isEmpty()? 0 : clusters.size();
-    out.writeInt(count);
-    for(Map.Entry<Rectangle, Integer> i : clusters.entrySet()) {
-      out.writeInt(i.getKey().x);
-      out.writeInt(i.getKey().y);
-      out.writeInt(i.getKey().width);
-      out.writeInt(i.getKey().height);
-      out.writeInt(i.getValue());
-    }
-  }
-
-  @Override
-  public void readExternal(ObjectInput in) throws IOException {
-    super.readExternal(in);
-    int count = in.readInt();
-
-    for(int i=0;i<count;i++) {
-      int X=in.readInt();
-      int Y=in.readInt();
-      int W=in.readInt();
-      int H=in.readInt();
-      int c= in.readInt();
-      Rectangle p=new Rectangle(X, Y, W, H);
-      clusters.put(p, c);
     }
   }
 

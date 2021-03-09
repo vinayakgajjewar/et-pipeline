@@ -5,7 +5,6 @@ import edu.ucr.cs.bdlab.beast.geolite.IFeature;
 import edu.ucr.cs.bdlab.beast.util.OperationParam;
 import edu.ucr.cs.bdlab.davinci.Canvas;
 import edu.ucr.cs.bdlab.davinci.Plotter;
-import org.apache.hadoop.conf.Configuration;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Envelope;
 
@@ -13,8 +12,6 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
 import java.io.OutputStream;
 import java.util.Map;
 
@@ -94,15 +91,4 @@ public class ClusterPlotter extends Plotter {
     }
     ImageIO.write(finalImage, "png", out);
   }
-
-  @Override
-  public void writeExternal(ObjectOutput out) throws IOException {
-    out.writeInt(radius);
-  }
-
-  @Override
-  public void readExternal(ObjectInput in) throws IOException {
-    this.radius = in.readInt();
-  }
-
 }
