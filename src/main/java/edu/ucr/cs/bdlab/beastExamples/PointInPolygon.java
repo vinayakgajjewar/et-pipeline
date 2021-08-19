@@ -67,14 +67,14 @@ public class PointInPolygon implements JCLIOperation {
       IFeature polygon = pair._1;
       IFeature point = pair._2;
       Geometry geometry = point.getGeometry();
-      Object[] values = new Object[point.getNumAttributes() + polygon.getNumAttributes()];
-      polygon.toSeq().copyToArray(values);
-      point.toSeq().copyToArray(values, polygon.getNumAttributes());
+      Object[] values = new Object[point.length() + polygon.length() - 2];
+      point.toSeq().copyToArray(values);
+      polygon.toSeq().copyToArray(values, point.length() - 1);
       return Feature.create(geometry, null, null, values);
     });
 
     // Write to the output
-    int numPolygonAttributes = polygons.first().getNumAttributes();
+    int numPolygonAttributes = polygons.first().length() - 1;
     // The output format is CSV where the point is encoded as WKT right between polygon and point attributes
     String oFormat = String.format("wkt(%d)", numPolygonAttributes);
     opts.set(CSVFeatureWriter.FieldSeparator, ";");

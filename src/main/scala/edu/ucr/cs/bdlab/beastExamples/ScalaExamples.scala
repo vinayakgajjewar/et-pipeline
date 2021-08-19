@@ -25,6 +25,14 @@ object ScalaExamples {
     val sparkSession = spark.getOrCreate()
     val sparkContext = sparkSession.sparkContext
 
+    // In Scala shell
+    val lines = sparkContext.textFile("data.txt")
+    val pairs = lines.flatMap(s => s.split("\\b"))
+      .map(w => (w,1))
+    val counts = pairs.reduceByKey((a, b) => a + b)
+    counts.saveAsTextFile("word_count_output.txt")
+
+
     try {
       // 2B. Import Beast features
       import edu.ucr.cs.bdlab.beast._

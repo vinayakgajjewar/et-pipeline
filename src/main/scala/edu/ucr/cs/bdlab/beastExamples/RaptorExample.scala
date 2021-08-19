@@ -35,14 +35,14 @@ object RaptorExample {
     val sc = spark.sparkContext
     try {
       // 1- Load raster and vector data
-      val treecover: RDD[ITile] = sc.geoTiff("treecover")
-      val countries: RDD[IFeature] = sc.shapefile("ne_10m_admin_0_countries.zip")
+      val treecover: RDD[ITile] = sc.geoTiff("gm_lc_v1_1_1.tif")
+      val states: RDD[IFeature] = sc.shapefile("tl_2018_us_state.zip")
 
       // 2- Run the Raptor join operation
-      val join: RDD[(IFeature, Int, Int, Int, Float)] = treecover.raptorJoin(countries)
-        .filter(v => v._5 >= 0 && v._5 <= 100.0)
+      val join: RDD[(IFeature, Int, Int, Int, Float)] = treecover.raptorJoin(states)
+        .filter(v => v._5 >= 0 && v._5 <= 5)
       // 3- Aggregate the result
-      val countries_treecover: RDD[(String, Float)] = join.map(v => (v._1, v._5))
+      val states_treecover: RDD[(String, Float)] = join.map(v => (v._1, v._5))
         .reduceByKey(_+_)
         .map(fv => {
           val name: String = fv._1.getAs[String]("NAME")
@@ -51,7 +51,7 @@ object RaptorExample {
         })
       // 4- Write the output
       println("State\tTreeCover")
-      for (result <- countries_treecover.collectAsMap())
+      for (result <- states_treecover.collect())
         println(s"${result._1}\t${result._2}")
     } finally {
       spark.stop()
