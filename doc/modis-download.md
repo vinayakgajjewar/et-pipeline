@@ -39,7 +39,7 @@ For more information, check the [detailed instructions](https://lpdaac.usgs.gov/
 ### 3. Download the download script
 
 The download script is located as part of the [Raptor source code](https://bitbucket.org/eldawy/beast/src/master/raptor/).
-The file is located on [this link](https://bitbucket.org/eldawy/beast/raw/0340c21e07fd51be2df747365915a98310001588/raptor/src/main/ruby/hdf_downloader.rb).
+The file is located on [this link](https://bitbucket.org/eldawy/beast/raw/88fcf2248e28bf7b722aee4ba339d3462864992e/raptor/src/main/ruby/hdf_downloader.rb).
 Simple download the file or copy and paste the script into a local `hdf_downloader.rb` file.
 
 ### 4. Locate the geographical region and date interval
