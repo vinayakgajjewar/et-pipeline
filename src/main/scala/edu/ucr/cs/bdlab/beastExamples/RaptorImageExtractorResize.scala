@@ -15,6 +15,7 @@
  */
 package edu.ucr.cs.bdlab.beastExamples
 
+import edu.ucr.cs.bdlab.beast._
 import edu.ucr.cs.bdlab.beast.common.BeastOptions
 import edu.ucr.cs.bdlab.beast.geolite.IFeature
 import edu.ucr.cs.bdlab.raptor.{RaptorJoin, RaptorJoinResult}

@@ -39,10 +39,11 @@ object RaptorExample {
       val states: RDD[IFeature] = sc.shapefile("tl_2018_us_state.zip")
 
       // 2- Run the Raptor join operation
-      val join: RDD[(IFeature, Int, Int, Int, Float)] = treecover.raptorJoin(states)
-        .filter(v => v._5 >= 0 && v._5 <= 5)
+      val join: RDD[(IFeature, Float)] = treecover.raptorJoin[Float](states)
+        .map(x => (x.feature, x.m))
+        .filter(v => v._2 >= 0 && v._2 <= 5)
       // 3- Aggregate the result
-      val states_treecover: RDD[(String, Float)] = join.map(v => (v._1, v._5))
+      val states_treecover: RDD[(String, Float)] = join
         .reduceByKey(_+_)
         .map(fv => {
           val name: String = fv._1.getAs[String]("NAME")
