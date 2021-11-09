@@ -44,6 +44,7 @@ object RaptorImageExtractorResize {
       conf.setMaster("local")
 
     val outputResolution: Int = 256
+    val keepAspectRatio: Boolean = true
     val spark: SparkSession = SparkSession.builder().config(conf).getOrCreate()
     val sc = spark.sparkContext
     try {
@@ -67,13 +68,19 @@ object RaptorImageExtractorResize {
           // Map the pixel boundaries to the target image and color all target pixels with the pixel color
           // Notice that some pixels might be partially outside the polygon boundaries because the Raptor join
           // operation finds pixels with a center inside the polygon not the entire pixel inside the polygon
+          var xRatio = outputResolution / mbr.getWidth
+          var yRatio = outputResolution / mbr.getHeight
+          if (keepAspectRatio) {
+            xRatio = xRatio min yRatio
+            yRatio = xRatio
+          }
           val pixelLocation = new Point2D.Double()
           result.rasterMetadata.gridToModel(result.x, result.y, pixelLocation)
-          val x1 = ((pixelLocation.x - mbr.getMinX) * outputResolution / mbr.getWidth).toInt max 0
-          val y1 = (outputResolution - 1 - ((pixelLocation.y - mbr.getMinY) * outputResolution / mbr.getHeight).toInt) max 0
+          val x1 = ((pixelLocation.x - mbr.getMinX) * xRatio).toInt max 0
+          val y1 = (outputResolution - 1 - ((pixelLocation.y - mbr.getMinY) * yRatio)).toInt max 0
           result.rasterMetadata.gridToModel(result.x + 1.0, result.y + 1.0, pixelLocation)
-          val x2 = ((pixelLocation.x - mbr.getMinX) * outputResolution / mbr.getWidth).toInt min (outputResolution - 1)
-          val y2 = (outputResolution - 1 - ((pixelLocation.y - mbr.getMinY) * outputResolution / mbr.getHeight).toInt) min (outputResolution - 1)
+          val x2 = ((pixelLocation.x - mbr.getMinX) * xRatio).toInt min (outputResolution - 1)
+          val y2 = (outputResolution - 1 - ((pixelLocation.y - mbr.getMinY) * yRatio).toInt) min (outputResolution - 1)
           val color = new Color(result.m(0), result.m(1), result.m(2)).getRGB
           for (x <- x1 until x2; y <- y1 until y2) {
             val offset = y * outputResolution + x

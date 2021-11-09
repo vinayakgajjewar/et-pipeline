@@ -52,6 +52,7 @@ public class RaptorImageExtractorResizeJava {
     JavaSpatialSparkContext sparkContext = new JavaSpatialSparkContext(sparkSession.sparkContext());
 
     final int outputResolution = 256;
+    final boolean keepAspectRatio = true;
 
     try {
       // 1- Load the input data
@@ -74,13 +75,17 @@ public class RaptorImageExtractorResizeJava {
             // Map the pixel boundaries to the target image and color all target pixels with the pixel color
             // Notice that some pixels might be partially outside the polygon boundaries because the Raptor join
             // operation finds pixels with a center inside the polygon not the entire pixel inside the polygon
+            double xRatio = outputResolution / mbr.getWidth();
+            double yRatio = outputResolution / mbr.getHeight();
+            if (keepAspectRatio)
+              xRatio = yRatio = Math.min(xRatio, yRatio);
             Point2D.Double pixelLocation = new Point2D.Double();
             result.rasterMetadata().gridToModel(result.x(), result.y(), pixelLocation);
-            int x1 = Math.max(0, (int)(((pixelLocation.x - mbr.getMinX()) * outputResolution / mbr.getWidth())));
-            int y1 = Math.max(0, (outputResolution - 1 - (int) (((pixelLocation.y - mbr.getMinY())) * outputResolution / mbr.getHeight())));
+            int x1 = Math.max(0, (int)(((pixelLocation.x - mbr.getMinX()) * xRatio)));
+            int y1 = Math.max(0, (outputResolution - 1 - (int) (((pixelLocation.y - mbr.getMinY())) * yRatio)));
             result.rasterMetadata().gridToModel(result.x() + 1.0, result.y() + 1.0, pixelLocation);
-            int x2 = Math.min(outputResolution - 1, (int)((pixelLocation.x - mbr.getMinX()) * outputResolution / mbr.getWidth()));
-            int y2 = Math.min(outputResolution - 1, outputResolution - 1 - (int)(((pixelLocation.y - mbr.getMinY()) * outputResolution / mbr.getHeight())));
+            int x2 = Math.min(outputResolution - 1, (int)((pixelLocation.x - mbr.getMinX()) * xRatio));
+            int y2 = Math.min(outputResolution - 1, outputResolution - 1 - (int)(((pixelLocation.y - mbr.getMinY()) * yRatio)));
             int color = new Color(result.m()[0], result.m()[1], result.m()[2]).getRGB();
             for (int x = x1; x < x2; x++) {
               for (int y = y1; y < y2; y++) {

@@ -17,6 +17,7 @@ package edu.ucr.cs.bdlab.beastExamples
 
 import edu.ucr.cs.bdlab.beast._
 import edu.ucr.cs.bdlab.beast.geolite.{IFeature, ITile}
+import edu.ucr.cs.bdlab.raptor.RaptorJoinFeature
 import org.apache.spark.SparkConf
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
@@ -39,11 +40,10 @@ object RaptorExample {
       val states: RDD[IFeature] = sc.shapefile("tl_2018_us_state.zip")
 
       // 2- Run the Raptor join operation
-      val join: RDD[(IFeature, Float)] = treecover.raptorJoin[Float](states)
-        .map(x => (x.feature, x.m))
-        .filter(v => v._2 >= 0 && v._2 <= 5)
+      val join: RDD[RaptorJoinFeature[Float]] = treecover.raptorJoin[Float](states)
+        .filter(v => v.m >= 0 && v.m <= 5)
       // 3- Aggregate the result
-      val states_treecover: RDD[(String, Float)] = join
+      val states_treecover: RDD[(String, Float)] = join.map(v => (v.feature, v.m))
         .reduceByKey(_+_)
         .map(fv => {
           val name: String = fv._1.getAs[String]("NAME")
