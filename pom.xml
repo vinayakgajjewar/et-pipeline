@@ -4,20 +4,23 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
+  <!-- The Basics -->
   <groupId>edu.ucr.cs.bdlab</groupId>
   <artifactId>beast-examples</artifactId>
-  <version>0.9.4-SNAPSHOT</version>
-
-  <name>beast-examples</name>
-  <url>https://bitbucket.org/eldawy/beast-examples</url>
-
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.source>1.8</maven.compiler.source>
-    <maven.compiler.target>1.8</maven.compiler.target>
-  </properties>
-
+  <!--<version>0.10.0-RC2</version>-->
+  <version>0.10.0-SNAPSHOT</version>
   <dependencies>
+
+    <!-- Added by me -->
+    <!-- https://mvnrepository.com/artifact/org.jdom/jdom2 -->
+    <dependency>
+      <groupId>org.jdom</groupId>
+      <artifactId>jdom2</artifactId>
+      <version>2.0.6.1</version>
+      <!--<scope>runtime</scope>-->
+    </dependency>
+
+
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
@@ -29,8 +32,33 @@
       <artifactId>beast-spark</artifactId>
       <version>${project.version}</version>
     </dependency>
-  </dependencies>
 
+    <!-- Blah blah blah -->
+    <dependency>
+      <groupId>org.geotools</groupId>
+      <artifactId>gt-coverage</artifactId>
+      <version>${geotools.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.geotools</groupId>
+      <artifactId>gt-swing</artifactId>
+      <version>${geotools.version}</version>
+    </dependency>
+  </dependencies>
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+
+    <!-- Blah blah -->
+    <geotools.version>22.2</geotools.version>
+  </properties>
+
+  <!-- More Project Information -->
+  <name>beast-examples</name>
+  <url>https://bitbucket.org/eldawy/beast-examples</url>
+
+  <!-- Build Settings -->
   <build>
     <plugins>
       <!-- This plugin compiles Scala files -->
@@ -82,6 +110,11 @@
               <include>org.geotools:gt-referencing</include>
               <include>org.geotools:gt-metadata</include>
               <include>org.geotools:gt-opengis</include>
+
+              <!-- Added by Vinayak -->
+              <include>org.geotools:gt-coverage</include>
+              <include>org.jdom2.Content</include>
+
               <include>org.geotools.ogc:net.opengis.ows</include>
               <include>org.geotools.ogc:org.w3.xlink</include>
               <include>org.hsqldb:hsqldb</include>
@@ -137,4 +170,23 @@
         </executions>
       </plugin>
     </plugins>
-  </build></project>
+  </build>
+
+  <!-- Environment Settings -->
+  <repositories>
+    <repository>
+      <id>osgeo</id>
+      <name>OSGeo Release Repository</name>
+      <url>https://repo.osgeo.org/repository/release/</url>
+      <snapshots><enabled>false</enabled></snapshots>
+      <releases><enabled>true</enabled></releases>
+    </repository>
+    <repository>
+      <id>osgeo-snapshot</id>
+      <name>OSGeo Snapshot Repository</name>
+      <url>https://repo.osgeo.org/repository/snapshot/</url>
+      <snapshots><enabled>true</enabled></snapshots>
+      <releases><enabled>false</enabled></releases>
+    </repository>
+  </repositories>
+</project>
