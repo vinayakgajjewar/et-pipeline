@@ -10,6 +10,9 @@ import edu.ucr.cs.bdlab.raptor.{GeoTiffWriter, RasterOperationsFocal, RasterOper
 import org.apache.spark.SparkConf
 import org.apache.spark.sql.SparkSession
 
+// My utility methods
+import edu.ucr.cs.bdlab.beastExamples.SaturationVaporPressureSlope.computeApproxSaturationVaporPressureSlope
+
 import scala.math.{exp, log, pow}
 
 object Example {
@@ -110,9 +113,10 @@ object Example {
       // Calculate mean saturation vapor pressure
       val e_s: Float = ((e_T_max + e_T_min) / 2.0f).toFloat
 
-      // Equation 13
+      // Equation 13 TODO: update equation #
       // Here, we calculate Delta (slope of saturation vapor pressure curve)
-      val Delta: RasterRDD[Float] = T.mapPixels(x => (4098.0f * (0.6108f * exp((17.27f * x) / (x + 237.3f))) / pow(x + 237.3f, 2.0f)).toFloat)
+      //val Delta: RasterRDD[Float] = T.mapPixels(x => (4098.0f * (0.6108f * exp((17.27f * x) / (x + 237.3f))) / pow(x + 237.3f, 2.0f)).toFloat)
+      val Delta: RasterRDD[Float] = computeApproxSaturationVaporPressureSlope(T)
 
       // Equation 17
       // Here, we get actual vapor pressure (e_a) from relative humidity data
