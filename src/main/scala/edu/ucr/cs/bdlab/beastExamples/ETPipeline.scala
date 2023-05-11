@@ -10,17 +10,12 @@
 package edu.ucr.cs.bdlab.beastExamples
 
 // RDPro
-import java.io.FileNotFoundException
-
 import edu.ucr.cs.bdlab.beast._
 import edu.ucr.cs.bdlab.beast.geolite.RasterMetadata
 import edu.ucr.cs.bdlab.raptor.{GeoTiffWriter, RasterOperationsFocal, RasterOperationsLocal}
 import org.apache.spark.SparkConf
 import org.apache.spark.sql.SparkSession
-import java.net.URL
 import java.util.Properties
-
-import scala.io.Source
 
 // My utility methods
 import edu.ucr.cs.bdlab.beastExamples.SaturationVaporPressureSlope.computeApproxSaturationVaporPressureSlope
@@ -31,15 +26,9 @@ object ETPipeline {
   def main(args: Array[String]): Unit = {
 
     // Open configuration file.
-    val url : URL = getClass.getResource("application.properties")
+    val propsUrl: String = "/Users/vinayakgajjewar/Fall_2022_research/evapotranspiration-pipeline/beast-examples/application.properties"
     val properties: Properties = new Properties()
-    if (url != null) {
-      val source = Source.fromURL(url)
-      properties.load(source.bufferedReader())
-    }
-    else {
-      throw new FileNotFoundException("Properties file cannot be loaded.")
-    }
+    properties.load(scala.io.Source.fromFile(propsUrl).bufferedReader())
 
     // Initialize Spark
     val sparkAppName : String = properties.getProperty("spark_app_name")
@@ -91,7 +80,7 @@ object ETPipeline {
       // Load wind speed data
       // Units: m s^-1
       // 10 m above sea level
-      val u_z_path: String = properties.getProperty("u_z_path");
+      val u_z_path: String = properties.getProperty("u_z_path")
       val u_z_all = sc.geoTiff[Array[Float]](u_z_path)
 
       // Just grab the first layer for now.
@@ -128,7 +117,7 @@ object ETPipeline {
 
       // Equation 12
       // Calculate mean saturation vapor pressure
-      val e_s: Float = ((e_T_max + e_T_min) / 2.0f).toFloat
+      val e_s: Float = (e_T_max + e_T_min) / 2.0f
 
       // Equation 13 TODO: update equation #
       // Here, we calculate Delta (slope of saturation vapor pressure curve)
@@ -137,7 +126,7 @@ object ETPipeline {
       // Equation 17
       // Here, we get actual vapor pressure (e_a) from relative humidity data
       // We are assuming that we have both RH_max and RH_min (as %)
-      val e_a: Float = ((e_T_min * RH_max / 2 + e_T_max * RH_min / 2) / 2).toFloat
+      val e_a: Float = ((e_T_min * RH_max / 2 + e_T_max * RH_min / 2) / 2)
 
       // Equation 38
       // Compute net shortwave radiation from incoming solar radiation
