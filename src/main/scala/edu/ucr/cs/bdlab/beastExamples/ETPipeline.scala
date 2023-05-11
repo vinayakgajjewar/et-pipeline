@@ -99,26 +99,20 @@ object ETPipeline {
       val u_z: RasterRDD[Float] = u_z_all.mapPixels(x => x(0))
 
       // Load downward shortwave radiation flux data
-      val R_s_pixels = sc.parallelize(Seq(
-        (0, 0, 461.1f),
-        (3, 4, 356.7f),
-        (8, 9, 166.4f)
-      ))
-      val R_s = sc.rasterizePixels[Float](R_s_pixels, metadata)
+      val R_s_path: String = properties.getProperty("R_s_path")
+      val R_s_all = sc.geoTiff[Array[Float]](R_s_path)
+      val R_s: RasterRDD[Float] = R_s_all.mapPixels(x => x(0))
 
       // Load R_nl
       // TODO: see if we need to do some calculations
-      val R_nl_pixels = sc.parallelize(Seq(
-        (0, 0, 468.4f),
-        (3, 4, 756.6f),
-        (8, 9, 151.2f)
-      ))
-      val R_nl = sc.rasterizePixels[Float](R_nl_pixels, metadata)
+      val R_nl_path: String = properties.getProperty("R_nl_path")
+      val R_nl_all = sc.geoTiff[Array[Float]](R_s_path)
+      val R_nl: RasterRDD[Float] = R_nl_all.mapPixels(x => x(0))
 
       // Equation 7
       // Compute atmospheric pressure (P) from elevation (z)
       // P is in kPa, z is in meters
-      val z: Float = 10.0f // TODO we need actual data for z
+      val z: Float = 10.0f // TODO not sure if we want to hardcode this
       val P: Float = (101.3f * pow((293.0f - 0.0065f * z) / 293.0f, 5.26f)).toFloat
 
       // Equation 8
