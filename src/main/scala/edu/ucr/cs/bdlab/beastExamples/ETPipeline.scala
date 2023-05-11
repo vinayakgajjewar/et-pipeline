@@ -1,26 +1,51 @@
-// Example.scala
-// Dummy pipeline that uses fake data
+// ETPipeline.scala
+// Uses the Penman-Monteith method to calculate evapotranspiration using NARR data.
+
+// Units and variables:
+// https://www.emc.ncep.noaa.gov/mmb/rreanl/narr_archive_contents.pdf
+
+// Data source:
+// https://psl.noaa.gov/data/gridded/data.narr.html
 
 package edu.ucr.cs.bdlab.beastExamples
 
 // RDPro
+import java.io.FileNotFoundException
+
 import edu.ucr.cs.bdlab.beast._
 import edu.ucr.cs.bdlab.beast.geolite.RasterMetadata
 import edu.ucr.cs.bdlab.raptor.{GeoTiffWriter, RasterOperationsFocal, RasterOperationsLocal}
 import org.apache.spark.SparkConf
 import org.apache.spark.sql.SparkSession
+import java.net.URL
+import java.util.Properties
+
+import scala.io.Source
 
 // My utility methods
 import edu.ucr.cs.bdlab.beastExamples.SaturationVaporPressureSlope.computeApproxSaturationVaporPressureSlope
 
 import scala.math.{exp, log, pow}
 
-object Example {
+object ETPipeline {
   def main(args: Array[String]): Unit = {
 
+    // Open configuration file.
+    val url : URL = getClass.getResource("application.properties")
+    val properties: Properties = new Properties()
+    if (url != null) {
+      val source = Source.fromURL(url)
+      properties.load(source.bufferedReader())
+    }
+    else {
+      throw new FileNotFoundException("Properties file cannot be loaded.")
+    }
+
     // Initialize Spark
-    val conf = new SparkConf().setAppName("Dummy Pipeline")
-    conf.setMaster("local[*]")
+    val sparkAppName : String = properties.getProperty("spark_app_name")
+    val sparkAppMaster : String = properties.getProperty("spark_app_master")
+    val conf = new SparkConf().setAppName(sparkAppName)
+    conf.setMaster(sparkAppMaster)
     val spark: SparkSession = SparkSession.builder().config(conf).getOrCreate()
     val sc = spark.sparkContext
 
@@ -41,39 +66,37 @@ object Example {
       )
 
       // Load air temp data
-      val T_pixels = sc.parallelize(Seq(
-        (0, 0, 10.1f),
-        (3, 4, 200.6f),
-        (8, 9, 300.2f)
-      ))
-      val T = sc.rasterizePixels[Float](T_pixels, metadata)
+      // TODO get the filesystem path from a config file
+      val T_path : String = properties.getProperty("T_path")
+      var T = sc.geoTiff[Array[Float]](T_path)
+      T = RasterOperationsFocal.reshapeNN(T, metadata)
 
-      // Air
-      // temp data from NARR is in K, so let's convert to degrees Celsius
-      val T_converted = T.mapPixels(x => x - 272.15f)
+      // Just grab the first layer for now
+      // TODO: decide what layer we need to use
+      val T_first : RasterRDD[Float] = T.mapPixels(x => x(0))
+
+      // Air temp data from NARR is in K, so let's convert to degrees Celsius
+      val T_converted = T_first.mapPixels(x => x - 272.15f)
       val T_min: Float = T_converted.flatten.map(_._4).min()
       val T_max: Float = T_converted.flatten.map(_._4).max()
 
       // Load relative humidity data
       // Relative humidity data given as %
-      val RH_pixels = sc.parallelize(Seq(
-        (0, 0, 2.7f),
-        (3, 4, 2.2f),
-        (8, 9, 3.8f)
-      ))
-      val RH = sc.rasterizePixels[Float](RH_pixels, metadata)
-      val RH_min: Float = RH.flatten.map(_._4).min()
-      val RH_max: Float = RH.flatten.map(_._4).max()
+      val RH_path : String = properties.getProperty("RH_path")
+      val RH = sc.geoTiff[Array[Float]](RH_path)
+      val RH_first : RasterRDD[Float] = RH.mapPixels(x => x(0))
+      val RH_max = RH_first.flatten.map(_._4).max()
+      val RH_min = RH_first.flatten.map(_._4).min()
 
       // Load wind speed data
       // Units: m s^-1
       // 10 m above sea level
-      val u_z_pixels = sc.parallelize(Seq(
-        (0, 0, 561.4f),
-        (3, 4, 230.7f),
-        (8, 9, 766.5f)
-      ))
-      val u_z = sc.rasterizePixels[Float](u_z_pixels, metadata)
+      val u_z_path: String = properties.getProperty("u_z_path");
+      val u_z_all = sc.geoTiff[Array[Float]](u_z_path)
+
+      // Just grab the first layer for now.
+      // TODO decide what layer we want to use.
+      val u_z: RasterRDD[Float] = u_z_all.mapPixels(x => x(0))
 
       // Load downward shortwave radiation flux data
       val R_s_pixels = sc.parallelize(Seq(
@@ -115,7 +138,7 @@ object Example {
 
       // Equation 13 TODO: update equation #
       // Here, we calculate Delta (slope of saturation vapor pressure curve)
-      val Delta: RasterRDD[Float] = computeApproxSaturationVaporPressureSlope(T)
+      val Delta: RasterRDD[Float] = computeApproxSaturationVaporPressureSlope(T_first)
 
       // Equation 17
       // Here, we get actual vapor pressure (e_a) from relative humidity data
@@ -159,7 +182,7 @@ object Example {
         u_2
       )
       val ET_o_overlays_2: RasterRDD[Array[Float]] = RasterOperationsLocal.overlay(
-        T,
+        T_first,
         R_n
       )
       val ET_o_overlay: RasterRDD[Array[Float]] = RasterOperationsLocal.overlay(ET_o_overlays_1, ET_o_overlays_2)
@@ -168,7 +191,7 @@ object Example {
       // Save output in GeoTIFF format
       ET_o.foreach(x => println(x.rasterMetadata.toString()))
       // TODO this does not work
-      val outputPath: String = "file:///Users/vinayakgajjewar/Fall_2022_research/evapotranspiration-pipeline/beast-examples/output/ET_o"
+      val outputPath : String = properties.getProperty("output_path")
       val reshaped_ET_o = RasterOperationsFocal.reshapeNN[Float](ET_o, metadata)
       //reshaped_ET_o.saveAsGeoTiff(outputPath, Seq(GeoTiffWriter.WriteMode -> "distributed", GeoTiffWriter.BitsPerSample -> "8"))
 
