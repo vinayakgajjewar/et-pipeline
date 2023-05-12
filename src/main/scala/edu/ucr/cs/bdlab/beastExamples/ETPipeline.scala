@@ -47,15 +47,14 @@ object ETPipeline {
         y1 = 40,
         x2 = -60,
         y2 = 30,
-        srid = 4326,
-        rasterWidth = 10,
-        rasterHeight = 10,
+        srid = 9802,  // Northern Lambert Conformal Conic.
+        rasterWidth = 349,
+        rasterHeight = 277,
         tileWidth = 10,
         tileHeight = 10
       )
 
       // Load air temp data
-      // TODO get the filesystem path from a config file
       val T_path : String = properties.getProperty("T_path")
       var T = sc.geoTiff[Array[Float]](T_path)
       print("Count:")
