@@ -58,11 +58,15 @@ object ETPipeline {
       // TODO get the filesystem path from a config file
       val T_path : String = properties.getProperty("T_path")
       var T = sc.geoTiff[Array[Float]](T_path)
-      T = RasterOperationsFocal.reshapeNN(T, metadata)
+      print("Count:")
+      println(T.count())
+      //T = RasterOperationsFocal.reshapeNN(T, metadata)
 
       // Just grab the first layer for now
       // TODO: decide what layer we need to use
       val T_first : RasterRDD[Float] = T.mapPixels(x => x(0))
+      print("Count:")
+      println(T_first.count())
 
       // Air temp data from NARR is in K, so let's convert to degrees Celsius
       val T_converted = T_first.mapPixels(x => x - 272.15f)
@@ -177,6 +181,8 @@ object ETPipeline {
       val outputPath : String = properties.getProperty("output_path")
       val reshaped_ET_o = RasterOperationsFocal.reshapeNN[Float](ET_o, metadata)
       //reshaped_ET_o.saveAsGeoTiff(outputPath, Seq(GeoTiffWriter.WriteMode -> "distributed", GeoTiffWriter.BitsPerSample -> "8"))
+      //reshaped_ET_o.saveAsGeoTiff(outputPath, Seq(GeoTiffWriter.WriteMode -> "distributed", GeoTiffWriter.BitsPerSample -> "8"))
+      reshaped_ET_o.saveAsTextFile(outputPath)
 
       // We're done with computing reference evapotranspiration (ET_o).
       // Now we'll deal with crop evapotranspiration (ET_c).
