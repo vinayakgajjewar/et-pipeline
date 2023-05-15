@@ -50,8 +50,8 @@ object ETPipeline {
         srid = 9802,  // Northern Lambert Conformal Conic.
         rasterWidth = 349,
         rasterHeight = 277,
-        tileWidth = 10,
-        tileHeight = 10
+        tileWidth = 128,
+        tileHeight = 128
       )
 
       // Load air temp data
