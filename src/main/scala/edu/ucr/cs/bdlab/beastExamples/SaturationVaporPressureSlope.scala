@@ -1,3 +1,8 @@
+/*
+ * SaturationVaporPressureSlope.scala
+ * This file contains a utility method to calculate slope of saturation vapor pressure.
+ */
+
 package edu.ucr.cs.bdlab.beastExamples
 
 // Import RDPro.
@@ -10,13 +15,7 @@ import scala.math.{exp, pow}
 object SaturationVaporPressureSlope {
 
   /*
-   * Equation 10
-   * TODO if we find data to do it this way.
-   */
-  def compute() {}
-
-  /*
-   * Equation 11
+   * Equation 11 (in the 2014 paper)
    * T_a is air temperature (K).
    */
   def computeApproxSaturationVaporPressureSlope(T_a: RasterRDD[Float]): RasterRDD[Float] = {

@@ -22,6 +22,9 @@ import edu.ucr.cs.bdlab.beastExamples.SaturationVaporPressureSlope.computeApprox
 
 import scala.math.{exp, log, pow}
 
+/*
+ * Compute latent heat flux using the Penman-Monteith method.
+ */
 object ETPipeline {
   def main(args: Array[String]): Unit = {
 
