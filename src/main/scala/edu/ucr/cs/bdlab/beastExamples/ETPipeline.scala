@@ -19,6 +19,7 @@ import java.util.Properties
 
 // My utility methods
 import edu.ucr.cs.bdlab.beastExamples.SaturationVaporPressureSlope.computeApproxSaturationVaporPressureSlope
+import edu.ucr.cs.bdlab.beastExamples.NetRadiation.computeNetRadiation
 
 import scala.math.{exp, log, pow}
 
@@ -45,17 +46,17 @@ object ETPipeline {
 
       // Raster metadata for reshaping
       // TODO what values?
-      val metadata = RasterMetadata.create(
+      /*val metadata = RasterMetadata.create(
         x1 = -50,
         y1 = 40,
         x2 = -60,
         y2 = 30,
-        srid = 9802,  // Northern Lambert Conformal Conic.
+        srid = 4326,  // Northern Lambert Conformal Conic.
         rasterWidth = 349,
         rasterHeight = 277,
-        tileWidth = 128,
-        tileHeight = 128
-      )
+        tileWidth = 10,
+        tileHeight = 10
+      )*/
 
       // Load air temp data
       val T_path : String = properties.getProperty("T_path")
@@ -100,6 +101,7 @@ object ETPipeline {
 
       // Load R_nl
       // TODO: see if we need to do some calculations
+      // TODO I should probably rename this variable at some point.
       val R_nl_path: String = properties.getProperty("R_nl_path")
       val R_nl_all = sc.geoTiff[Array[Float]](R_s_path)
       val R_nl: RasterRDD[Float] = R_nl_all.mapPixels(x => x(0))
@@ -132,29 +134,40 @@ object ETPipeline {
       // Equation 17
       // Here, we get actual vapor pressure (e_a) from relative humidity data
       // We are assuming that we have both RH_max and RH_min (as %)
-      val e_a: Float = ((e_T_min * RH_max / 2 + e_T_max * RH_min / 2) / 2)
+      val e_a: Float = (e_T_min * RH_max / 2 + e_T_max * RH_min / 2) / 2
 
-      // Equation 38
-      // Compute net shortwave radiation from incoming solar radiation
-      // Canopy reflection coefficient is defined as 23% for hypothetical grass reference crop
-      val a = 0.23f
-      val R_ns = R_s.mapPixels(x => (1 - a) * x)
+      /*
+       * Load surface albedo data from NARR.
+       */
+      val alpha_path: String = properties.getProperty("alpha_path")
+      val alpha_all: RasterRDD[Array[Float]] = sc.geoTiff[Array[Float]](alpha_path)
+      val alpha: RasterRDD[Float] = alpha_all.mapPixels(x => x(0))
 
-      // Equation 39
+      /*
+       * Load upward longwave radiation flux data from NARR (W m^-1).
+       */
+      val R_lu_path: String = properties.getProperty("R_lu_path")
+      val R_lu_all: RasterRDD[Array[Float]] = sc.geoTiff[Array[Float]](R_lu_path)
+      val R_lu: RasterRDD[Float] = R_lu_all.mapPixels(x => x(0))
 
-      // Equation 40
-      // Compute net radiation from incoming net shortwave radiation and outgoing net longwave radiation
-
-      val R_n_overlay: RasterRDD[Array[Float]] = RasterOperationsLocal.overlay(
-        R_ns,
-        R_nl
+      /*
+       * Compute net radiation using my external function.
+       */
+      val R_n: RasterRDD[Float] = computeNetRadiation(
+        R_s,
+        R_nl,
+        R_lu,
+        alpha
       )
-      val R_n: RasterRDD[Float] = R_n_overlay.mapPixels(x => x(0) - x(1))
 
       // Compute soil heat flux
 
       // For single-day and ten-day periods, soil heat flux is negligible
       // Equation 42
+      /*
+       * TODO compute soil heat flux using the equation given in the METRIC 2007 paper
+       * Equation 26 in Allen et al. 2007
+       */
       val G = 0.0f
 
       // Equation 47
@@ -170,24 +183,24 @@ object ETPipeline {
         Delta,
         u_2
       )
+      println("overlay 1")
+      println(ET_o_overlays_1.count())
       val ET_o_overlays_2: RasterRDD[Array[Float]] = RasterOperationsLocal.overlay(
         T_first,
         R_n
       )
+      println("overlay 2")
+      println(ET_o_overlays_2.count())
       val ET_o_overlay: RasterRDD[Array[Float]] = RasterOperationsLocal.overlay(ET_o_overlays_1, ET_o_overlays_2)
+      println("overlay")
+      println(ET_o_overlay.count())
       val ET_o: RasterRDD[Float] = ET_o_overlay.mapPixels(x => (((0.408f * x(0) * (x(3) - G)) + (gamma * 900.0f * x(1) * (e_s - e_a) / (x(2) + 273.0f))) / (x(0) + gamma * (1.0f + 0.34f * x(1)))).toFloat)
 
       // Save output in GeoTIFF format
       ET_o.foreach(x => println(x.rasterMetadata.toString()))
       // TODO this does not work
       val outputPath : String = properties.getProperty("output_path")
-      val reshaped_ET_o = RasterOperationsFocal.reshapeNN[Float](ET_o, metadata)
-      //reshaped_ET_o.saveAsGeoTiff(outputPath, Seq(GeoTiffWriter.WriteMode -> "distributed", GeoTiffWriter.BitsPerSample -> "8"))
-      //reshaped_ET_o.saveAsGeoTiff(outputPath, Seq(GeoTiffWriter.WriteMode -> "distributed", GeoTiffWriter.BitsPerSample -> "8"))
-      reshaped_ET_o.saveAsTextFile(outputPath)
-
-      // We're done with computing reference evapotranspiration (ET_o).
-      // Now we'll deal with crop evapotranspiration (ET_c).
+      ET_o.saveAsGeoTiff(outputPath, Seq(GeoTiffWriter.WriteMode -> "compatibility", GeoTiffWriter.BitsPerSample -> "8"))
 
     } finally {
       spark.stop()
