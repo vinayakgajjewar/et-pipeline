@@ -15,7 +15,7 @@ object InstantaneousET {
                             R_n: RasterRDD[Float],
                             G: RasterRDD[Float],
                             H: RasterRDD[Float]
-                            ): Unit = {
+                            ): RasterRDD[Float] = {
 
     /*
      * Compute latent heat of vaporization using equation (53) of Allen et al. 2007.
