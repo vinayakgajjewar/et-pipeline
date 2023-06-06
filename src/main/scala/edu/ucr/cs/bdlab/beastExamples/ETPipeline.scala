@@ -17,16 +17,24 @@ import org.apache.spark.SparkConf
 import org.apache.spark.sql.SparkSession
 import java.util.Properties
 
-// My utility methods
+/*
+ * Utility modules for computing intermediate results.
+ */
 import edu.ucr.cs.bdlab.beastExamples.SaturationVaporPressureSlope.computeApproxSaturationVaporPressureSlope
 import edu.ucr.cs.bdlab.beastExamples.NetRadiation.computeNetRadiation
+import edu.ucr.cs.bdlab.beastExamples.PenmanMonteith.computeLatentHeatFlux
+import edu.ucr.cs.bdlab.beastExamples.AerodynamicResistance.computeAerodynamicResistance
+import edu.ucr.cs.bdlab.beastExamples.BulkSurfaceResistance.computeBulkSurfaceResistance
+import edu.ucr.cs.bdlab.beastExamples.InstantaneousET.computeInstantaneousET
+import edu.ucr.cs.bdlab.beastExamples.SaturationVaporPressure.computeSaturationVaporPressure
 
 import scala.math.{exp, log, pow}
 
-/*
- * Compute latent heat flux using the Penman-Monteith method.
- */
 object ETPipeline {
+
+  /*
+   * Compute latent heat flux using the Penman-Monteith method.
+   */
   def main(args: Array[String]): Unit = {
 
     // Open configuration file.
@@ -168,39 +176,74 @@ object ETPipeline {
        * TODO compute soil heat flux using the equation given in the METRIC 2007 paper
        * Equation 26 in Allen et al. 2007
        */
-      val G = 0.0f
+      val G: Float = 0.0f
 
-      // Equation 47
-      // Compute wind speed at 2 meters given wind speed at height z
-      // meters/second
-      val u_2: RasterRDD[Float] = u_z.mapPixels(x => (x * 4.87f / log(67.8f * z - 5.42f)).toFloat)
+      /*
+       * Compute aerodynamic resistance using eq. 14 in the Dhungel et al. 2014 paper.
+       */
+      val r_ah: RasterRDD[Float] = computeAerodynamicResistance(
+        Z_om, // Estimate this as 0.005
+        u_z,
+        42069, /* TODO idk what this should be */
+        10
+      )
 
-      // Equation 6
-      // FAO Penman-Monteith equation
-      // Here we are finally computing reference evapotranspiration
+      /*
+       * Compute instantaneous ET using equations (1) and (52) of Allen et al. 2007.
+       */
+      val ET_inst: RasterRDD[Float] = computeInstantaneousET(
+        T_s,
+        R_n,
+        G,
+        H
+      )
 
-      val ET_o_overlays_1: RasterRDD[Array[Float]] = RasterOperationsLocal.overlay(
+
+      /*
+       * Compute bulk surface resistance (r_s) using equation (7) in Dhungel et al. 2014.
+       */
+      val r_s: RasterRDD[Float] = computeBulkSurfaceResistance(
+        e_deg_sur,
+        e_a,
+        ET_inst,
+        r_ah
+      )
+
+      /*
+       * Compute saturation vapor pressure of air (e_o_air).
+       * TODO: make sure we're using the right input for T_a.
+       */
+      val e_o_air: RasterRDD[Float] = computeSaturationVaporPressure(T_first)
+      
+      /*
+       * Now that we have all the inputs, we can compute latent heat flux using the Penman-Monteith equation. We use
+       * equation 8 in Dhungel et al. 2014.
+       */
+      val lambda_E_PM: RasterRDD[Float] = computeLatentHeatFlux(
         Delta,
-        u_2
+        R_n,
+        G,
+        e_o_air,
+        e_a,
+        C_p,
+        rho_a,
+        r_ah,
+        gamma,
+        r_s
       )
-      println("overlay 1")
-      println(ET_o_overlays_1.count())
-      val ET_o_overlays_2: RasterRDD[Array[Float]] = RasterOperationsLocal.overlay(
-        T_first,
-        R_n
-      )
-      println("overlay 2")
-      println(ET_o_overlays_2.count())
-      val ET_o_overlay: RasterRDD[Array[Float]] = RasterOperationsLocal.overlay(ET_o_overlays_1, ET_o_overlays_2)
-      println("overlay")
-      println(ET_o_overlay.count())
-      val ET_o: RasterRDD[Float] = ET_o_overlay.mapPixels(x => (((0.408f * x(0) * (x(3) - G)) + (gamma * 900.0f * x(1) * (e_s - e_a) / (x(2) + 273.0f))) / (x(0) + gamma * (1.0f + 0.34f * x(1)))).toFloat)
 
-      // Save output in GeoTIFF format
-      ET_o.foreach(x => println(x.rasterMetadata.toString()))
-      // TODO this does not work
+      /*
+       * Save the output as a GeoTIFF file. We set the write mode to "compatibility" so that only a single GeoTIFF file
+       * is generated.
+       */
       val outputPath : String = properties.getProperty("output_path")
-      ET_o.saveAsGeoTiff(outputPath, Seq(GeoTiffWriter.WriteMode -> "compatibility", GeoTiffWriter.BitsPerSample -> "8"))
+      lambda_E_PM.saveAsGeoTiff(
+        outputPath,
+        Seq(
+          GeoTiffWriter.WriteMode -> "compatibility",
+          GeoTiffWriter.BitsPerSample -> "8"
+        )
+      )
 
     } finally {
       spark.stop()
