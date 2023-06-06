@@ -21,7 +21,10 @@ object AerodynamicResistance {
    * z: height of measurement (m).
    * d: zeo plane displacement (m).
    */
-  def computeAerodynamicResistance(Z_om: RasterRDD[Float], u_z: RasterRDD[Float], d: Float, z: Float): RasterRDD[Float] = {
+  def computeAerodynamicResistance(
+                                    Z_om: RasterRDD[Float],
+                                    u_z: RasterRDD[Float],
+                                    d: Float, z: Float): RasterRDD[Float] = {
     val k: Float = 0.41f
     val Z_oh: RasterRDD[Float] = Z_om.mapPixels(x => x * 0.1f)
     val overlay: RasterRDD[Array[Float]] = RasterOperationsLocal.overlay(
