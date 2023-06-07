@@ -19,7 +19,7 @@ object AerodynamicResistance {
    * Z_om: roughness length of momentum (m).
    * u_z: wind speed (m/s).
    * z: height of measurement (m).
-   * d: zeo plane displacement (m).
+   * d: zero plane displacement (m).
    */
   def computeAerodynamicResistance(
                                     Z_om: RasterRDD[Float],
