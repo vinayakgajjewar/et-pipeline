@@ -27,6 +27,7 @@ import edu.ucr.cs.bdlab.beastExamples.AerodynamicResistance.computeAerodynamicRe
 import edu.ucr.cs.bdlab.beastExamples.BulkSurfaceResistance.computeBulkSurfaceResistance
 import edu.ucr.cs.bdlab.beastExamples.InstantaneousET.computeInstantaneousET
 import edu.ucr.cs.bdlab.beastExamples.SaturationVaporPressure.computeSaturationVaporPressure
+import edu.ucr.cs.bdlab.beastExamples.SensibleHeatFlux.computeSensibleHeatFlux
 
 import scala.math.{exp, log, pow}
 
@@ -184,29 +185,34 @@ object ETPipeline {
       val r_ah: RasterRDD[Float] = computeAerodynamicResistance(
         Z_om, // Estimate this as 0.005
         u_z,
-        42069, /* TODO idk what this should be */
+        0, /* TODO idk what this should be */
         10
+      )
+
+      /*
+       * Load air temperature data at 2 meters.
+       */
+      val T_a_path: String = properties.getProperty("T_a_path")
+      val T_a_all: RasterRDD[Array[Float]] = sc.geoTiff[Array[Float]](T_a_path)
+      val T_a: RasterRDD[Float] = T_a_all.mapPixels(x => x(0))
+
+      /*
+       * Compute sensible heat flux (H) using equation (A15) of Dhungel et al. 2014.
+       */
+      val H: RasterRDD[Float] = computeSensibleHeatFlux(
+        T_first,
+        T_a,  // TODO see if we need to convert units
+        r_ah
       )
 
       /*
        * Compute instantaneous ET using equations (1) and (52) of Allen et al. 2007.
        */
       val ET_inst: RasterRDD[Float] = computeInstantaneousET(
-        T_s,
+        T_first,
         R_n,
         G,
         H
-      )
-
-
-      /*
-       * Compute bulk surface resistance (r_s) using equation (7) in Dhungel et al. 2014.
-       */
-      val r_s: RasterRDD[Float] = computeBulkSurfaceResistance(
-        e_deg_sur,
-        e_a,
-        ET_inst,
-        r_ah
       )
 
       /*
@@ -214,7 +220,17 @@ object ETPipeline {
        * TODO: make sure we're using the right input for T_a.
        */
       val e_o_air: RasterRDD[Float] = computeSaturationVaporPressure(T_first)
-      
+
+      /*
+       * Compute bulk surface resistance (r_s) using equation (7) in Dhungel et al. 2014.
+       */
+      val r_s: RasterRDD[Float] = computeBulkSurfaceResistance(
+        e_o_air, // TODO make sure this is correct
+        e_a,
+        ET_inst,
+        r_ah
+      )
+
       /*
        * Now that we have all the inputs, we can compute latent heat flux using the Penman-Monteith equation. We use
        * equation 8 in Dhungel et al. 2014.
@@ -225,8 +241,6 @@ object ETPipeline {
         G,
         e_o_air,
         e_a,
-        C_p,
-        rho_a,
         r_ah,
         gamma,
         r_s
