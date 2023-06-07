@@ -20,12 +20,20 @@ object PenmanMonteith {
                            G: RasterRDD[Float],
                            e_o_air: RasterRDD[Float],
                            e_a: RasterRDD[Float],
-                           C_p: RasterRDD[Float], // TODO might be a constant
-                           rho_a: RasterRDD[Float], // TODO might be a constant
                            r_ah: RasterRDD[Float],
                            gamma: RasterRDD[Float],
                            r_s: RasterRDD[Float]
                            ): RasterRDD[Float] = {
+
+    /*
+     * Atmospheric density (kg / m^3).
+     */
+    val rho_a: Float = 1.225f
+
+    /*
+     * Specific heat capacity of moist air (J/kg/K).
+     */
+    val C_p: Float = 1005.0f
 
     /*
      * Create an overlay with all the input rasters.
@@ -50,13 +58,11 @@ object PenmanMonteith {
      * x(2): G
      * x(3): e_o_air
      * x(4): e_a
-     * x(5): C_p
-     * x(6): rho_a
-     * x(7): r_ah
-     * x(8): gamma
-     * x(9): r_s
+     * x(5): r_ah
+     * x(6): gamma
+     * x(7): r_s
      */
-    val lambda_E_PM: RasterRDD[Float] = overlay.mapPixels(x => ((x(0) * (x(1) - x(2))) + ((x(5) * x(6) * (x(3) - x(4))) / x(7))) / (x(0) + x(8) * (1 + (x(9) / x(7)))))
+    val lambda_E_PM: RasterRDD[Float] = overlay.mapPixels(x => ((x(0) * (x(1) - x(2))) + ((C_p * rho_a * (x(3) - x(4))) / x(5))) / (x(0) + x(6) * (1 + (x(7) / x(5)))))
     lambda_E_PM
   }
 }
