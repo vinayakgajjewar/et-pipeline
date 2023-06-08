@@ -13,7 +13,6 @@ object InstantaneousET {
   def computeInstantaneousET(
                             T_s: RasterRDD[Float],
                             R_n: RasterRDD[Float],
-                            G: RasterRDD[Float],
                             H: RasterRDD[Float]
                             ): RasterRDD[Float] = {
 
@@ -27,18 +26,22 @@ object InstantaneousET {
      */
     val ET_inst_overlay: RasterRDD[Array[Float]] = RasterOperationsLocal.overlay(
       R_n,
-      G,
       H,
       lambda
     )
 
     /*
-     * x(0): R_n
-     * x(1): G
-     * x(2): H
-     * x(3): lambda
+     * Assume soil heat flux is 0.
+     * TODO compute this once we have LAI data.
      */
-    val ET_inst: RasterRDD[Float] = ET_inst_overlay.mapPixels(x => 3600 * (x(0) - x(1) - x(2)) / (x(3) * 1000))
+    val G: Float = 0
+
+    /*
+     * x(0): R_n
+     * x(1): H
+     * x(2): lambda
+     */
+    val ET_inst: RasterRDD[Float] = ET_inst_overlay.mapPixels(x => 3600 * (x(0) - G - x(1)) / (x(2) * 1000))
     ET_inst
   }
 }

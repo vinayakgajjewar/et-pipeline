@@ -167,21 +167,11 @@ object ETPipeline {
         alpha
       )
 
-      // Compute soil heat flux
-
-      // For single-day and ten-day periods, soil heat flux is negligible
-      // Equation 42
       /*
-       * TODO compute soil heat flux using the equation given in the METRIC 2007 paper
-       * Equation 26 in Allen et al. 2007
-       */
-      val G: Float = 0.0f
-
-      /*
-       * Compute aerodynamic resistance using eq. 14 in the Dhungel et al. 2014 paper.
+       * Compute aerodynamic resistance using eq. 14 in the Dhungel et al. 2014 paper. We estimate Z_om as 0.005 m.
        */
       val r_ah: RasterRDD[Float] = computeAerodynamicResistance(
-        Z_om, // Estimate this as 0.005
+        0.005f,
         u_z,
         0, /* TODO idk what this should be */
         10
@@ -209,7 +199,6 @@ object ETPipeline {
       val ET_inst: RasterRDD[Float] = computeInstantaneousET(
         T_first,
         R_n,
-        G,
         H
       )
 
@@ -236,7 +225,6 @@ object ETPipeline {
       val lambda_E_PM: RasterRDD[Float] = computeLatentHeatFlux(
         Delta,
         R_n,
-        G,
         e_o_air,
         e_a,
         r_ah,

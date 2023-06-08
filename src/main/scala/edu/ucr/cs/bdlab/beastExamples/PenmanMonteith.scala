@@ -17,7 +17,6 @@ object PenmanMonteith {
   def computeLatentHeatFlux(
                            Delta: RasterRDD[Float],
                            R_n: RasterRDD[Float],
-                           G: RasterRDD[Float],
                            e_o_air: RasterRDD[Float],
                            e_a: RasterRDD[Float],
                            r_ah: RasterRDD[Float],
@@ -45,14 +44,17 @@ object PenmanMonteith {
     val overlay: RasterRDD[Array[Float]] = RasterOperationsLocal.overlay(
       Delta,
       R_n,
-      G,
       e_o_air,
       e_a,
-      C_p,
-      rho_a,
       r_ah,
       r_s
     )
+
+    /*
+     * Assume soil heat flux is 0.
+     * TODO compute this once we have LAI data.
+     */
+    val G: Float = 0
 
     /*
      * Equation 8 in Dhungel et al. 2014.
@@ -64,7 +66,7 @@ object PenmanMonteith {
      * x(5): r_ah
      * x(6): r_s
      */
-    val lambda_E_PM: RasterRDD[Float] = overlay.mapPixels(x => ((x(0) * (x(1) - x(2))) + ((C_p * rho_a * (x(3) - x(4))) / x(5))) / (x(0) + gamma * (1 + (x(6) / x(5)))))
+    val lambda_E_PM: RasterRDD[Float] = overlay.mapPixels(x => ((x(0) * (x(1) - G)) + ((C_p * rho_a * (x(2) - x(3))) / x(4))) / (x(0) + gamma * (1 + (x(5) / x(4)))))
     lambda_E_PM
   }
 }
