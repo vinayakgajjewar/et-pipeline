@@ -21,7 +21,6 @@ object PenmanMonteith {
                            e_o_air: RasterRDD[Float],
                            e_a: RasterRDD[Float],
                            r_ah: RasterRDD[Float],
-                           gamma: RasterRDD[Float],
                            r_s: RasterRDD[Float]
                            ): RasterRDD[Float] = {
 
@@ -36,6 +35,11 @@ object PenmanMonteith {
     val C_p: Float = 1005.0f
 
     /*
+     * Psychrometric constant (kPa / deg. C).
+     */
+    val gamma: Float = 0.66f
+
+    /*
      * Create an overlay with all the input rasters.
      */
     val overlay: RasterRDD[Array[Float]] = RasterOperationsLocal.overlay(
@@ -47,7 +51,6 @@ object PenmanMonteith {
       C_p,
       rho_a,
       r_ah,
-      gamma,
       r_s
     )
 
@@ -59,10 +62,9 @@ object PenmanMonteith {
      * x(3): e_o_air
      * x(4): e_a
      * x(5): r_ah
-     * x(6): gamma
-     * x(7): r_s
+     * x(6): r_s
      */
-    val lambda_E_PM: RasterRDD[Float] = overlay.mapPixels(x => ((x(0) * (x(1) - x(2))) + ((C_p * rho_a * (x(3) - x(4))) / x(5))) / (x(0) + x(6) * (1 + (x(7) / x(5)))))
+    val lambda_E_PM: RasterRDD[Float] = overlay.mapPixels(x => ((x(0) * (x(1) - x(2))) + ((C_p * rho_a * (x(3) - x(4))) / x(5))) / (x(0) + gamma * (1 + (x(6) / x(5)))))
     lambda_E_PM
   }
 }

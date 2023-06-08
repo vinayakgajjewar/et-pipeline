@@ -242,7 +242,6 @@ object ETPipeline {
         e_o_air,
         e_a,
         r_ah,
-        gamma,
         r_s
       )
 
