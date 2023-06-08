@@ -6,7 +6,6 @@
 package edu.ucr.cs.bdlab.beastExamples
 
 import edu.ucr.cs.bdlab.beast._
-import edu.ucr.cs.bdlab.raptor.RasterOperationsLocal
 
 import scala.math.pow
 import scala.math.log
@@ -22,17 +21,19 @@ object AerodynamicResistance {
    * d: zero plane displacement (m).
    */
   def computeAerodynamicResistance(
-                                    Z_om: RasterRDD[Float],
+                                    Z_om: Float,
                                     u_z: RasterRDD[Float],
-                                    d: Float, z: Float): RasterRDD[Float] = {
+                                    d: Float,
+                                    z: Float
+                                  ): RasterRDD[Float] = {
     val k: Float = 0.41f
-    val Z_oh: RasterRDD[Float] = Z_om.mapPixels(x => x * 0.1f)
-    val overlay: RasterRDD[Array[Float]] = RasterOperationsLocal.overlay(
-      Z_om,
-      Z_oh,
-      u_z
-    )
-    val r_ah: RasterRDD[Float] = overlay.mapPixels(x => ((log((z - d) / x(0)) * log((z - d) / x(1))) / (pow(k, 2.0f).toFloat * x(3))).toFloat)
+
+    /*
+     * Z_oh can be approximated as 0.1 * Z_om.
+     */
+    val Z_oh: Float = Z_om * 0.1f
+
+    val r_ah: RasterRDD[Float] = u_z.mapPixels(x => (log((z - d) / Z_om).toFloat * log((z - d) / Z_oh).toFloat) / (pow(k, 2).toFloat * x))
     r_ah
   }
 }
