@@ -112,19 +112,13 @@ object ETPipeline {
       // TODO: see if we need to do some calculations
       // TODO I should probably rename this variable at some point.
       val R_nl_path: String = properties.getProperty("R_nl_path")
-      val R_nl_all = sc.geoTiff[Array[Float]](R_s_path)
+      val R_nl_all = sc.geoTiff[Array[Float]](R_nl_path)
       val R_nl: RasterRDD[Float] = R_nl_all.mapPixels(x => x(0))
 
       // Equation 7
       // Compute atmospheric pressure (P) from elevation (z)
       // P is in kPa, z is in meters
       val z: Float = 10.0f // TODO not sure if we want to hardcode this
-      val P: Float = (101.3f * pow((293.0f - 0.0065f * z) / 293.0f, 5.26f)).toFloat
-
-      // Equation 8
-      // Compute psychometric constant (gamma) from atmospheric pressure
-      // kPa / deg C
-      val gamma: Float = (0.665f * pow(10.0f, -3) * P).toFloat
 
       // Equation 11
       // We are calculating saturation vapor pressure here
@@ -140,10 +134,14 @@ object ETPipeline {
       // Here, we calculate Delta (slope of saturation vapor pressure curve)
       val Delta: RasterRDD[Float] = computeApproxSaturationVaporPressureSlope(T_first)
 
-      // Equation 17
-      // Here, we get actual vapor pressure (e_a) from relative humidity data
-      // We are assuming that we have both RH_max and RH_min (as %)
-      val e_a: Float = (e_T_min * RH_max / 2 + e_T_max * RH_min / 2) / 2
+      /*
+       * Load pressure data from NARR and convert from Pa to kPa.
+       * TODO: make sure we are using the right data (vapor pressure vs. pressure)?
+       */
+      val e_a_path: String = properties.getProperty("e_a_path")
+      val e_a_all: RasterRDD[Array[Float]] = sc.geoTiff[Array[Float]](e_a_path)
+      var e_a: RasterRDD[Float] = e_a_all.mapPixels(x => x(0))
+      e_a = e_a.mapPixels(x => x / 1000)
 
       /*
        * Load surface albedo data from NARR.
